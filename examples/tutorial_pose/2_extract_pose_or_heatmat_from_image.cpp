@@ -102,7 +102,9 @@ int openPoseTutorialPose2()
     std::shared_ptr<op::PoseExtractor> poseExtractorPtr = std::make_shared<op::PoseExtractorCaffe>(netInputSize, netOutputSize, outputSize, FLAGS_num_scales,
                                                                                                    (float)FLAGS_scale_gap, poseModel,
                                                                                                    FLAGS_model_folder, FLAGS_num_gpu_start);
-    op::PoseRenderer poseRenderer{netOutputSize, outputSize, poseModel, poseExtractorPtr, (float)FLAGS_alpha_pose, (float)FLAGS_alpha_heatmap};
+
+	
+    op::PoseRenderer poseRenderer{netOutputSize, outputSize, poseModel, poseExtractorPtr, true,(float)FLAGS_alpha_pose, (float)FLAGS_alpha_heatmap};
     poseRenderer.setElementToRender(FLAGS_part_to_show);
     op::OpOutputToCvMat opOutputToCvMat{outputSize};
     const cv::Size windowedSize = outputSize;

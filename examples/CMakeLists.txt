@@ -9,7 +9,7 @@ foreach(source_folder ${examples_fld})
   		get_filename_component(name ${source_file} NAME_WE)
 	  	message("name: " ${name})  
 
-		add_executable(${name} ${example_srcs})
+		add_executable(${name} ${source_file})
 		target_compile_definitions(${name} ${OpenPoseExample_DEFINITIONS})
 		target_link_libraries(${name} ${OpenPose_LINK})
 	    openpose_default_properties(${name})	    

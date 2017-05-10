@@ -178,7 +178,7 @@ namespace op
 
             // Display
             if (returnedIsValidFrame)
-                mFrameDisplayer.displayFrame(cvOutputData, -1);
+                mFrameDisplayer.displayFrame(cvOutputData,  -1);
 
             // Handle user input
             handleUserInput(mFrameDisplayer, mPoseExtractors, mPoseRenderers, spIsRunning, spVideoSeek);

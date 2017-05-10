@@ -46,6 +46,7 @@ namespace op
         const cv::Size mWindowedSize;
         const std::string mWindowName;
         GuiDisplayMode mGuiDisplayMode;
+		bool initialized;
     };
 }
 

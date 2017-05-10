@@ -248,7 +248,7 @@ int opRealTimePoseDemo()
     // OpenPose wrapper
     op::log("Configuring OpenPose wrapper.", op::Priority::Low, __LINE__, __FUNCTION__, __FILE__);
     op::Wrapper<std::vector<op::Datum>> opWrapper;
-   /* const op::WrapperStructPose wrapperStructPose{netInputSize, outputSize, scaleMode, FLAGS_num_gpu, FLAGS_num_gpu_start, FLAGS_num_scales, (float)FLAGS_scale_gap,
+    const op::WrapperStructPose wrapperStructPose{netInputSize, outputSize, scaleMode, FLAGS_num_gpu, FLAGS_num_gpu_start, FLAGS_num_scales, (float)FLAGS_scale_gap,
                                                   !FLAGS_no_render_output, poseModel, !FLAGS_disable_blending, (float)FLAGS_alpha_pose, (float)FLAGS_alpha_heatmap,
                                                   FLAGS_part_to_show, FLAGS_model_folder, heatMapTypes, op::ScaleMode::UnsignedChar};
     const op::WrapperStructInput wrapperStructInput{producerSharedPtr, FLAGS_frame_first, FLAGS_frame_last, FLAGS_process_real_time, FLAGS_frame_flip,
@@ -293,7 +293,7 @@ int opRealTimePoseDemo()
     // Measuring total time
     const auto totalTimeSec = (double)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now()-timerBegin).count() * 1e-9;
     const auto message = "Real-time pose estimation demo successfully finished. Total time: " + std::to_string(totalTimeSec) + " seconds.";
-    op::log(message, op::Priority::Max);*/
+    op::log(message, op::Priority::Max);
 
     return 0;
 }

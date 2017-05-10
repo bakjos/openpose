@@ -21,11 +21,20 @@ include(GNUInstallDirs)
 
 include(cmake/Utils.cmake)
 include(cmake/Targets.cmake)
+include(cmake/Misc.cmake)
+include(cmake/TargetResolvePrerequesites.cmake)
 
+
+
+openpose_option(USE_BOOST_DYNAMIC "Use the dynamic libraries " ON IF MSVC)
 
 openpose_option(USE_CUDNN "Build OpenPose with cuDNN library support" ON IF NOT CPU_ONLY)
 openpose_option(BUILD_SHARED_LIBS "Build shared libraries" ON)
-
+openpose_option(COPY_PREREQUISITES "Copy the prerequisites next to each executable or shared library directory" ON IF MSVC)
+openpose_option(INSTALL_PREREQUISITES "Install the prerequisites next to each executable or shared library directory" ON IF MSVC)
+openpose_option(USE_LEVELDB "Build with levelDB" ON)
+openpose_option(USE_LMDB "Build with lmdb" ON)
+openpose_option(ALLOW_LMDB_NOLOCK "Allow MDB_NOLOCK when reading LMDB files (only if necessary)" OFF)
 
 
 
@@ -35,41 +44,44 @@ set(OpenPose_DEFINITIONS "")
 set(OpenPose_COMPILE_OPTIONS "")
 set(OpenPose_DEBUG_POSTFIX "-d")
 
-if(USE_CAFFE)
-     list(APPEND OpenPose_DEFINITIONS PUBLIC -DUSE_CAFFE)
+openpose_option(protobuf_MODULE_COMPATIBLE "Make the protobuf-config.cmake compatible with the module mode" ON IF MSVC)
 
-	# ---[ BLAS
-	if(NOT APPLE)
-	  set(BLAS "Atlas" CACHE STRING "Selected BLAS library")
-	  set_property(CACHE BLAS PROPERTY STRINGS "Atlas;Open;MKL")
 
-	  if(BLAS STREQUAL "Atlas" OR BLAS STREQUAL "atlas")
-	    find_package(Atlas REQUIRED)
-	    list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${Atlas_INCLUDE_DIR})
-	    list(APPEND OpenPose_LINKER_LIBS PUBLIC ${Atlas_LIBRARIES})
-	  elseif(BLAS STREQUAL "Open" OR BLAS STREQUAL "open")
-	    find_package(OpenBLAS REQUIRED)
-	    list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${OpenBLAS_INCLUDE_DIR})
-	    list(APPEND OpenPose_LINKER_LIBS PUBLIC ${OpenBLAS_LIB})
-	  elseif(BLAS STREQUAL "MKL" OR BLAS STREQUAL "mkl")
-	    find_package(MKL REQUIRED)
-	    list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${MKL_INCLUDE_DIR})
-	    list(APPEND OpenPose_LINKER_LIBS PUBLIC ${MKL_LIBRARIES})
-	    list(APPEND OpenPose_DEFINITIONS PUBLIC -DUSE_MKL)
-	  endif()
-	elseif(APPLE)
-	  find_package(vecLib REQUIRED)
-	  list(APPEND Caffe_INCLUDE_DIRS PUBLIC ${vecLib_INCLUDE_DIR})
-	  list(APPEND Caffe_LINKER_LIBS PUBLIC ${vecLib_LINKER_LIBS})
 
-	  if(VECLIB_FOUND)
-	    if(NOT vecLib_INCLUDE_DIR MATCHES "^/System/Library/Frameworks/vecLib.framework.*")
-	      list(APPEND Caffe_DEFINITIONS PUBLIC -DUSE_ACCELERATE)
-	    endif()
-	  endif()
-	endif()
+ list(APPEND OpenPose_DEFINITIONS PUBLIC -DUSE_CAFFE)
 
+# ---[ BLAS
+if(NOT APPLE)
+  set(BLAS "Atlas" CACHE STRING "Selected BLAS library")
+  set_property(CACHE BLAS PROPERTY STRINGS "Atlas;Open;MKL")
+
+  if(BLAS STREQUAL "Atlas" OR BLAS STREQUAL "atlas")
+    find_package(Atlas REQUIRED)
+    list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${Atlas_INCLUDE_DIR})
+    list(APPEND OpenPose_LINKER_LIBS PUBLIC ${Atlas_LIBRARIES})
+  elseif(BLAS STREQUAL "Open" OR BLAS STREQUAL "open")
+    find_package(OpenBLAS REQUIRED)
+    list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${OpenBLAS_INCLUDE_DIR})
+    list(APPEND OpenPose_LINKER_LIBS PUBLIC ${OpenBLAS_LIB})
+  elseif(BLAS STREQUAL "MKL" OR BLAS STREQUAL "mkl")
+    find_package(MKL REQUIRED)
+    list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${MKL_INCLUDE_DIR})
+    list(APPEND OpenPose_LINKER_LIBS PUBLIC ${MKL_LIBRARIES})
+    list(APPEND OpenPose_DEFINITIONS PUBLIC -DUSE_MKL)
+  endif()
+elseif(APPLE)
+  find_package(vecLib REQUIRED)
+  list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${vecLib_INCLUDE_DIR})
+  list(APPEND OpenPose_LINKER_LIBS PUBLIC ${vecLib_LINKER_LIBS})
+
+  if(VECLIB_FOUND)
+    if(NOT vecLib_INCLUDE_DIR MATCHES "^/System/Library/Frameworks/vecLib.framework.*")
+      list(APPEND OpenPose_DEFINITIONS PUBLIC -DUSE_ACCELERATE)
+    endif()
+  endif()
 endif()
+
+
 
 
 # ---[ Includes
@@ -85,9 +97,15 @@ list(APPEND OpenPose_LINKER_LIBS PUBLIC ${CAFFE_LIBRARIES})
 
 
 # ---[ Boost
-find_package(Boost 1.55 REQUIRED COMPONENTS system thread filesystem)
+find_package(Boost 1.55 REQUIRED COMPONENTS system filesystem thread)
+
 list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${Boost_INCLUDE_DIRS})
+list(APPEND OpenPose_DEFINITIONS PUBLIC -DBOOST_ALL_NO_LIB)
 list(APPEND OpenPose_LINKER_LIBS PUBLIC ${Boost_LIBRARIES})
+
+if ( USE_BOOST_DYNAMIC ) 
+	list(APPEND OpenPose_DEFINITIONS PUBLIC -DBOOST_ALL_DYN_LINK)
+endif()
 
 
 # ---[ Google-glog
@@ -105,9 +123,23 @@ find_package( Protobuf REQUIRED )
 list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${PROTOBUF_INCLUDE_DIR})
 list(APPEND OpenPose_LINKER_LIBS PUBLIC ${PROTOBUF_LIBRARIES})
 
+if(MSVC)
+  # Find HDF5 using it's hdf5-config.cmake file with MSVC
+  if(DEFINED HDF5_DIR)
+    list(APPEND CMAKE_MODULE_PATH ${HDF5_DIR})
+  endif()
+  find_package(HDF5 COMPONENTS C HL REQUIRED)
+  set(HDF5_LIBRARIES hdf5-shared)
+  set(HDF5_HL_LIBRARIES hdf5_hl-shared)
+else()
+  find_package(HDF5 COMPONENTS HL REQUIRED)
+endif()
+list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${HDF5_INCLUDE_DIRS})
+list(APPEND OpenPose_LINKER_LIBS PUBLIC ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
+
 
 # ---[ OpenCV
-find_package(OpenCV QUIET COMPONENTS core highgui imgproc imgcodecs)
+find_package(OpenCV QUIET COMPONENTS core highgui imgproc imgcodecs videoio)
 
 if(NOT OpenCV_FOUND) # if not OpenCV 3.x, then imgcodecs are not found
 	find_package(OpenCV REQUIRED COMPONENTS core highgui imgproc)
@@ -117,6 +149,30 @@ list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${OpenCV_INCLUDE_DIRS})
 list(APPEND OpenPose_LINKER_LIBS PUBLIC ${OpenCV_LIBS})
 message(STATUS "OpenCV found (${OpenCV_CONFIG_PATH})")
 list(APPEND OpenPose_DEFINITIONS PUBLIC -DUSE_OPENCV)
+
+# ---[ LMDB
+if(USE_LMDB)
+  find_package(LMDB REQUIRED)
+  list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${LMDB_INCLUDE_DIR})
+  list(APPEND OpenPose_LINKER_LIBS PUBLIC ${LMDB_LIBRARIES})
+  list(APPEND Caffe_DEFINITIONS PUBLIC -DUSE_LMDB)
+  if(ALLOW_LMDB_NOLOCK)
+    list(APPEND OpenPose_DEFINITIONS PRIVATE -DALLOW_LMDB_NOLOCK)
+  endif()
+endif()
+
+# ---[ LevelDB
+if(USE_LEVELDB)
+  find_package(LevelDB REQUIRED)
+  list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${LevelDB_INCLUDES})
+  list(APPEND OpenPose_LINKER_LIBS PUBLIC ${LevelDB_LIBRARIES})
+  list(APPEND OpenPose_DEFINITIONS PUBLIC -DUSE_LEVELDB)
+endif()
+
+
+if ( WIN32) 
+	list(APPEND OpenPose_DEFINITIONS PUBLIC -DCMAKE_WINDOWS_BUILD)
+endif()
 
 
 
@@ -133,7 +189,7 @@ cuda_include_directories(${OpenPose_INCLUDE_DIR} ${OpenPose_SRC_DIR} ${OpenPose_
 # add definitions to nvcc flags directly
 set(OpenPose_ALL_DEFINITIONS ${OpenPose_DEFINITIONS})
 list(REMOVE_ITEM OpenPose_ALL_DEFINITIONS PRIVATE PUBLIC)
-list(APPEND CUDA_NVCC_FLAGS ${Caffe_ALL_DEFINITIONS})
+list(APPEND CUDA_NVCC_FLAGS ${OpenPose_ALL_DEFINITIONS})
 
 
 

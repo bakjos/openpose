@@ -32,7 +32,7 @@ namespace op
             // float* (deep net format): C x H x W
             // cv::Mat (OpenCV format): H x W x C
             if (cvMat.rows != resolutionSize.height || cvMat.cols != resolutionSize.width || cvMat.type() != CV_8UC3)
-                cvMat = cv::Mat{resolutionSize.height, resolutionSize.width, CV_8UC3};
+                cvMat = cv::Mat(resolutionSize.height, resolutionSize.width, CV_8UC3);
             const auto offsetBetweenChannels = resolutionSize.width * resolutionSize.height;
             for (auto c = 0; c < resolutionChannels; c++)
             {
@@ -44,7 +44,8 @@ namespace op
                     for (auto x = 0; x < resolutionSize.width; x++)
                     {
                         const auto value = uchar(   fastTruncate(intRound(floatImage[floatImageOffsetY + x]), 0, 255)   );
-                        cvMat.at<uchar>(resolutionChannels*(cvMatOffsetY + x) + c) = value;
+                        //cvMat.at<uchar>(resolutionChannels*(cvMatOffsetY + x) + c) = value;
+						cvMat.data[resolutionChannels*(cvMatOffsetY + x) + c] = value;
                     }
                 }
             }
