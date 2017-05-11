@@ -12,14 +12,14 @@ set(DEPENDENCIES_SHA_1900_27 "17eecb095bd3b0774a87a38624a77ce35e497cd2")
 set(DEPENDENCIES_URL_1900_35 "${DEPENDENCIES_URL_BASE}/v${DEPENDENCIES_VERSION}/${DEPENDENCIES_NAME_1900_35}${DEPENDENCIES_FILE_EXT}")
 set(DEPENDENCIES_SHA_1900_35 "f060403fd1a7448d866d27c0e5b7dced39c0a607")
 
-caffe_option(USE_PREBUILT_DEPENDENCIES "Download and use the prebuilt dependencies" ON IF MSVC)
+openpose_option(USE_PREBUILT_DEPENDENCIES "Download and use the prebuilt dependencies" ON IF MSVC)
 if(MSVC)
   file(TO_CMAKE_PATH $ENV{USERPROFILE} USERPROFILE_DIR)
   if(NOT EXISTS ${USERPROFILE_DIR})
-    message(FATAL_ERROR "Could not find %USERPROFILE% directory. Please specify an alternate CAFFE_DEPENDENCIES_ROOT_DIR")
+    message(FATAL_ERROR "Could not find %USERPROFILE% directory. Please specify an alternate OPENPOSE_DEPENDENCIES_ROOT_DIR")
   endif()
-  set(CAFFE_DEPENDENCIES_ROOT_DIR ${USERPROFILE_DIR}/.caffe/dependencies CACHE PATH "Prebuild depdendencies root directory")
-  set(CAFFE_DEPENDENCIES_DOWNLOAD_DIR ${CAFFE_DEPENDENCIES_ROOT_DIR}/download CACHE PATH "Download directory for prebuilt dependencies")
+  set(OPENPOSE_DEPENDENCIES_ROOT_DIR ${USERPROFILE_DIR}/.caffe/dependencies CACHE PATH "Prebuild depdendencies root directory")
+  set(OPENPOSE_DEPENDENCIES_DOWNLOAD_DIR ${OPENPOSE_DEPENDENCIES_ROOT_DIR}/download CACHE PATH "Download directory for prebuilt dependencies")
 endif()
 if(USE_PREBUILT_DEPENDENCIES)
     # Determine the python version
@@ -42,11 +42,11 @@ if(USE_PREBUILT_DEPENDENCIES)
     # set the dependencies URL and SHA1
     set(DEPENDENCIES_URL ${DEPENDENCIES_URL_${MSVC_VERSION}_${_pyver}})
     set(DEPENDENCIES_SHA ${DEPENDENCIES_SHA_${MSVC_VERSION}_${_pyver}})
-    set(CAFFE_DEPENDENCIES_DIR ${CAFFE_DEPENDENCIES_ROOT_DIR}/${DEPENDENCIES_NAME_${MSVC_VERSION}_${_pyver}})
+    set(OPENPOSE_DEPENDENCIES_DIR ${OPENPOSE_DEPENDENCIES_ROOT_DIR}/${DEPENDENCIES_NAME_${MSVC_VERSION}_${_pyver}})
 
-    foreach(_dir ${CAFFE_DEPENDENCIES_ROOT_DIR}
-                 ${CAFFE_DEPENDENCIES_DOWNLOAD_DIR}
-                 ${CAFFE_DEPENDENCIES_DIR})
+    foreach(_dir ${OPENPOSE_DEPENDENCIES_ROOT_DIR}
+                 ${OPENPOSE_DEPENDENCIES_DOWNLOAD_DIR}
+                 ${OPENPOSE_DEPENDENCIES_DIR})
       # create the directory if it does not exist
       if(NOT EXISTS ${_dir})
         file(MAKE_DIRECTORY ${_dir})
@@ -54,7 +54,7 @@ if(USE_PREBUILT_DEPENDENCIES)
     endforeach()
     # download and extract the file if it does not exist or if does not match the sha1
     get_filename_component(_download_filename ${DEPENDENCIES_URL} NAME)
-    set(_download_path ${CAFFE_DEPENDENCIES_DOWNLOAD_DIR}/${_download_filename})
+    set(_download_path ${OPENPOSE_DEPENDENCIES_DOWNLOAD_DIR}/${_download_filename})
     set(_download_file 1)
     if(EXISTS ${_download_path})
         file(SHA1 ${_download_path} _file_sha)
@@ -73,18 +73,18 @@ if(USE_PREBUILT_DEPENDENCIES)
                       EXPECTED_HASH SHA1=${DEPENDENCIES_SHA}
                       SHOW_PROGRESS
                       )
-        if(EXISTS ${CAFFE_DEPENDENCIES_DIR}/libraries)
-            file(REMOVE_RECURSE ${CAFFE_DEPENDENCIES_DIR}/libraries)
+        if(EXISTS ${OPENPOSE_DEPENDENCIES_DIR}/libraries)
+            file(REMOVE_RECURSE ${OPENPOSE_DEPENDENCIES_DIR}/libraries)
         endif()
     endif()
-    if(EXISTS ${_download_path} AND NOT EXISTS ${CAFFE_DEPENDENCIES_DIR}/libraries)
+    if(EXISTS ${_download_path} AND NOT EXISTS ${OPENPOSE_DEPENDENCIES_DIR}/libraries)
         message(STATUS "Extracting dependencies")
         execute_process(COMMAND ${CMAKE_COMMAND} -E tar xjf ${_download_path}
-                        WORKING_DIRECTORY ${CAFFE_DEPENDENCIES_DIR}
+                        WORKING_DIRECTORY ${OPENPOSE_DEPENDENCIES_DIR}
         )
     endif()
-    if(EXISTS ${CAFFE_DEPENDENCIES_DIR}/libraries/caffe-builder-config.cmake)
-        include(${CAFFE_DEPENDENCIES_DIR}/libraries/caffe-builder-config.cmake)
+    if(EXISTS ${OPENPOSE_DEPENDENCIES_DIR}/libraries/caffe-builder-config.cmake)
+        include(${OPENPOSE_DEPENDENCIES_DIR}/libraries/caffe-builder-config.cmake)
     else()
         message(FATAL_ERROR "Something went wrong while dowloading dependencies could not open caffe-builder-config.cmake")
     endif()

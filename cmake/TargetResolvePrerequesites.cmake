@@ -3,10 +3,10 @@ set(THIS_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 include(CMakeParseArguments)
 
-function(caffe_prerequisites_directories VAR)
+function(openpose_prerequisites_directories VAR)
   if(BUILD_SHARED_LIBS)
-    # Append the caffe library output directory
-    list(APPEND _directories $<TARGET_FILE_DIR:caffe>)
+    # Append the openpose library output directory
+    list(APPEND _directories $<TARGET_FILE_DIR:openpose>)
   endif()
   # Add boost to search directories
   list(APPEND _directories ${Boost_LIBRARY_DIRS})
@@ -46,13 +46,13 @@ function(caffe_prerequisites_directories VAR)
   set(${VAR} ${_directories} PARENT_SCOPE)
 endfunction()
 
-function(caffe_copy_prerequisites target)
-  caffe_prerequisites_directories(_directories)
+function(openpose_copy_prerequisites target)
+  openpose_prerequisites_directories(_directories)
   target_copy_prerequisites(${target} ${ARGN} DIRECTORIES ${_directories})
 endfunction()
 
-function(caffe_install_prerequisites target)
-  caffe_prerequisites_directories(_directories)
+function(openpose_install_prerequisites target)
+  openpose_prerequisites_directories(_directories)
   target_install_prerequisites(${target} ${ARGN} DIRECTORIES ${_directories})
 endfunction()
 
@@ -115,6 +115,11 @@ function(target_install_prerequisites target)
                      )
   add_custom_target(${target}_install_prerequisites ALL
                     DEPENDS ${_command_output})
+
+ if ( MSVC )
+      set_target_properties(${target}_install_prerequisites PROPERTIES FOLDER install)
+ endif()
+
   install(FILES ${_command_output} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/tmp)
 endfunction()
 
@@ -178,6 +183,8 @@ if(CMAKE_SCRIPT_MODE_FILE)
   # Recreate a list by replacing the @@ with ;
   string(REPLACE "@@" ";" DIRECTORIES "${DIRECTORIES}")
   string(REPLACE "@@" ";" PLUGINS "${PLUGINS}")
+  message("Directories " ${DIRECTORIES})
+  message("Target " ${TARGET})
   # Get a recursive list of dependencies required by target using dumpbin
   get_prerequisites(${TARGET} _prerequisites 1 1 "" "${DIRECTORIES}")
   foreach(_prereq ${_prerequisites} ${PLUGINS})

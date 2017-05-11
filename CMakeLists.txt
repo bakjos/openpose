@@ -46,6 +46,8 @@ set(OpenPose_DEBUG_POSTFIX "-d")
 
 openpose_option(protobuf_MODULE_COMPATIBLE "Make the protobuf-config.cmake compatible with the module mode" ON IF MSVC)
 
+include(cmake/WindowsDownloadPrebuiltDependencies.cmake)
+
 
 
  list(APPEND OpenPose_DEFINITIONS PUBLIC -DUSE_CAFFE)
@@ -94,7 +96,6 @@ include_directories(${PROJECT_BINARY_DIR})
 find_package(CAFFE REQUIRED)
 list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${CAFFE_INCLUDE_DIRS})
 list(APPEND OpenPose_LINKER_LIBS PUBLIC ${CAFFE_LIBRARIES})
-
 
 # ---[ Boost
 find_package(Boost 1.55 REQUIRED COMPONENTS system filesystem thread)

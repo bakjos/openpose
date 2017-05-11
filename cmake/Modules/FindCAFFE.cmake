@@ -20,21 +20,21 @@ find_path(CAFFE_INCLUDE_DIR caffe/caffe.hpp
 if(MSVC)
     find_library(CAFFE_LIBRARY_RELEASE caffe
         PATHS ${CAFFE_ROOT_DIR}
-        PATH_SUFFIXES lib/Release)
+        PATH_SUFFIXES lib/Release build/lib build/lib/release)
 
     find_library(CAFFE_LIBRARY_DEBUG caffe-d
         PATHS ${CAFFE_ROOT_DIR}
-        PATH_SUFFIXES lib/Debug)
+        PATH_SUFFIXES lib/Debug build/lib build/lib/debug)
 
     set(CAFFE_LIBRARY optimized ${CAFFE_LIBRARY_RELEASE} debug ${CAFFE_LIBRARY_DEBUG})
 
     find_library(CAFFE_PROTO_LIBRARY_RELEASE proto
         PATHS ${CAFFE_ROOT_DIR}
-        PATH_SUFFIXES lib/Release)
+        PATH_SUFFIXES lib/Release build/lib build/lib/release)
 
     find_library(CAFFE_PROTO_LIBRARY_DEBUG proto-d
         PATHS ${CAFFE_ROOT_DIR}
-        PATH_SUFFIXES lib/Debug)
+        PATH_SUFFIXES lib/Debug build/lib build/lib/debug)
 
     set(CAFFE_PROTO_LIBRARY optimized ${CAFFE_PROTO_LIBRARY_RELEASE} debug ${CAFFE_PROTO_LIBRARY_DEBUG})
 

@@ -13,14 +13,8 @@ include(FindPackageHandleStandardArgs)
 
 set(GFLAGS_ROOT_DIR "" CACHE PATH "Folder contains Gflags")
 
-# We are testing only a couple of files in the include directories
-if(WIN32)
-    find_path(GFLAGS_INCLUDE_DIR gflags/gflags.h
-        PATHS ${GFLAGS_ROOT_DIR}/src/windows)
-else()
-    find_path(GFLAGS_INCLUDE_DIR gflags/gflags.h
-        PATHS ${GFLAGS_ROOT_DIR})
-endif()
+find_path(GFLAGS_INCLUDE_DIR gflags/gflags.h
+    PATHS ${GFLAGS_ROOT_DIR})
 
 if(MSVC)
     find_library(GFLAGS_LIBRARY_RELEASE
@@ -33,7 +27,14 @@ if(MSVC)
         PATHS ${GFLAGS_ROOT_DIR}
         PATH_SUFFIXES Debug)
 
-    set(GFLAGS_LIBRARY optimized ${GFLAGS_LIBRARY_RELEASE} debug ${GFLAGS_LIBRARY_DEBUG})
+    if (GFLAGS_LIBRARY_RELEASE AND GFLAGS_LIBRARY_DEBUG) 
+        set(GFLAGS_LIBRARY optimized ${GFLAGS_LIBRARY_RELEASE} debug ${GFLAGS_LIBRARY_DEBUG})
+    else ()
+        find_package(gflags NO_MODULE)
+        set(GFLAGS_LIBRARY ${gflags_LIBRARIES})
+        set(GFLAGS_INCLUDE_DIR ${gflags_INCLUDE_DIRS})
+    endif()
+    
 else()
     find_library(GFLAGS_LIBRARY gflags)
 endif()
