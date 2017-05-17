@@ -62,5 +62,26 @@ namespace op
                 error(e.what(), __LINE__, __FUNCTION__, __FILE__);
             }
         }
+
+		void FaceRenderer::renderFace(GpuArray<float>& outputData, const Array<float>& faceKeyPoints)
+		{
+			try
+			{
+				if (!faceKeyPoints.empty())
+				{
+					gpuToGpuMemoryIfNotCopiedYet(outputData.getPtr());
+					cudaMemcpy(pGpuFace, faceKeyPoints.getConstPtr(), FACE_NUMBER_PARTS * 3 * sizeof(float), cudaMemcpyHostToDevice);
+					renderFaceGpu(*spGpuMemoryPtr, mFrameSize, pGpuFace, faceKeyPoints.getSize(0));
+					cudaCheck(__LINE__, __FUNCTION__, __FILE__);
+				}
+				// GPU memory to CPU if last renderer
+				gpuToGpuMemoryIfLastRenderer(outputData.getPtr());
+				cudaCheck(__LINE__, __FUNCTION__, __FILE__);
+			}
+			catch (const std::exception& e)
+			{
+				error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+			}
+		}
     }
 }

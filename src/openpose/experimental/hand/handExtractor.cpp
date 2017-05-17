@@ -89,6 +89,19 @@ UNUSED(cvInputData);
                 error(e.what(), __LINE__, __FUNCTION__, __FILE__);
             }
         }
+
+		void HandExtractor::forwardPass(const Array<float>& poseKeyPoints, const cv::cuda::GpuMat& cvInputData)
+		{
+			try
+			{
+				UNUSED(poseKeyPoints);
+				UNUSED(cvInputData);
+			}
+			catch (const std::exception& e)
+			{
+				error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+			}
+		}
  
         Array<float> HandExtractor::getHandKeyPoints() const
         {

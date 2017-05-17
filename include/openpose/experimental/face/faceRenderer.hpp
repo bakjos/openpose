@@ -3,6 +3,7 @@
 
 #include <opencv2/core/core.hpp>
 #include "../../core/array.hpp"
+#include "../../core/gpuArray.hpp"
 #include "../../core/renderer.hpp"
 #include "../../thread/worker.hpp"
 
@@ -20,6 +21,7 @@ namespace op
             void initializationOnThread();
 
             void renderFace(Array<float>& outputData, const Array<float>& faceKeyPoints);
+			void renderFace(GpuArray<float>& outputData, const Array<float>& faceKeyPoints);
 
         private:
             const cv::Size mFrameSize;

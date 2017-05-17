@@ -6,7 +6,9 @@
 #include <memory> // std::shared_ptr
 #include <thread>
 #include <opencv2/core/core.hpp>
+#include <opencv2/core/cuda.hpp>
 #include "../../core/array.hpp"
+#include "../../core/gpuArray.hpp"
 #include "../../core/net.hpp"
 #include "../../core/nmsCaffe.hpp"
 #include "../../core/resizeAndMergeCaffe.hpp"
@@ -26,6 +28,7 @@ namespace op
             void initializationOnThread();
 
             void forwardPass(const Array<float>& poseKeyPoints, const cv::Mat& cvInputData);
+            void forwardPass(const Array<float>& poseKeyPoints, const cv::cuda::GpuMat& cvInputData);
 
             Array<float> getFaceKeyPoints() const;
 

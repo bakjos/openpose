@@ -3,7 +3,10 @@
 
 #include <string> // std::string
 #include <opencv2/core/core.hpp> // cv::Mat
+#include <opencv2/core/cuda.hpp> // cv::cuda::GpuMat
 #include "array.hpp"
+#include "gpuArray.hpp"
+
 
 namespace op
 {
@@ -24,7 +27,7 @@ namespace op
          * Original image to be processed in cv::Mat uchar format.
          * Size: (input_width x input_height) x 3 channels
          */
-        cv::Mat cvInputData;
+        cv::cuda::GpuMat cvInputData;
 
         /**
          * Original image to be processed in Array<float> format.
@@ -32,7 +35,7 @@ namespace op
          * In case of >1 scales, then each scale is right- and bottom-padded to fill the greatest resolution. The scales are sorted from bigger to smaller.
          * Size: #scales x 3 x input_net_height x input_net_width
          */
-        Array<float> inputNetData;
+        GpuArray<float> inputNetData;
 
         /**
          * Rendered image in Array<float> format.
@@ -40,7 +43,7 @@ namespace op
          * If rendering is disabled (e.g. `no_render_output` flag in the demo), then outputData will be empty.
          * Size: 3 x output_net_height x output_net_width
          */
-        Array<float> outputData;
+		GpuArray<float> outputData;
 
         /**
          * Rendered image in cv::Mat uchar format.
@@ -49,7 +52,7 @@ namespace op
          * Size: (output_height x output_width) x 3 channels
          */
         cv::Mat cvOutputData;
-
+		
         // -------------------------------------------------- Resulting Array<float> data parameters -------------------------------------------------- //
         /**
          * Body pose (x,y,score) locations for each person in the image.
@@ -90,9 +93,7 @@ namespace op
 
         std::pair<int, std::string> elementRendered; /**< Pair with the element key id POSE_BODY_PART_MAPPING on `pose/poseParameters.hpp` and its mapped value (e.g. 1 and "Neck"). */
 
-
-
-
+	
 
         // -------------------------------------------------- Functions -------------------------------------------------- //
         /**
@@ -146,9 +147,6 @@ namespace op
          * @return The resulting Datum.
          */
 		OPENPOSE_API Datum clone() const;
-
-
-
 
 
         // -------------------------------------------------- Comparison operators -------------------------------------------------- //

@@ -181,7 +181,7 @@ namespace op
             M.at<double>(1,1) = scaleFactor;
             if (scaleFactor != 1. || targetSize != cvMat.size())
                 cv::warpAffine(cvMat, resultingCvMat, M, targetSize, (scaleFactor < 1. ? cv::INTER_AREA : cv::INTER_CUBIC), borderMode, borderValue);
-            else
+            else 
                 resultingCvMat = cvMat.clone();
             return resultingCvMat;
         }
@@ -200,8 +200,9 @@ namespace op
 			M.at<double>(1, 1) = scaleFactor;
 			if (scaleFactor != 1. || targetSize != cvMat.size())
 				cv::cuda::warpAffine(cvMat, resultingCvMat, M, targetSize, (scaleFactor < 1. ? cv::INTER_LINEAR : cv::INTER_CUBIC), borderMode, borderValue);
-			else
-				resultingCvMat = cvMat.clone();
+			else {
+				cvMat.copyTo(resultingCvMat);
+			}
 		}
 		catch (const std::exception& e)
 		{

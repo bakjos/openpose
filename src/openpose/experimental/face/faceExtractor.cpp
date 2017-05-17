@@ -86,6 +86,18 @@ UNUSED(cvInputData);
                 error(e.what(), __LINE__, __FUNCTION__, __FILE__);
             }
         }
+
+		void  FaceExtractor::forwardPass(const Array<float>& poseKeyPoints, const cv::cuda::GpuMat& cvInputData) {
+			try
+			{
+				UNUSED(poseKeyPoints);
+				UNUSED(cvInputData);
+			}
+			catch (const std::exception& e)
+			{
+				error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+			}
+        }
  
         Array<float> FaceExtractor::getFaceKeyPoints() const
         {

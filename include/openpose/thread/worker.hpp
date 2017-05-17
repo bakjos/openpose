@@ -65,8 +65,10 @@ namespace op
     template<typename TDatums>
     bool Worker<TDatums>::checkAndWork(TDatums& tDatums)
     {
-        if (mIsRunning)
-            work(tDatums);
+		if (mIsRunning)
+		{
+			work(tDatums);
+		}
         return mIsRunning;
     }
 

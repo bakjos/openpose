@@ -28,6 +28,8 @@ namespace op
         unsigned int mNumberConsecutiveEmptyFrames;
         std::shared_ptr<std::pair<std::atomic<bool>, std::atomic<int>>> spVideoSeek;
 
+		cv::cuda::GpuMat currentGpuMat;
+
         void checkIfTooManyConsecutiveEmptyFrames(unsigned int& numberConsecutiveEmptyFrames, const bool emptyFrame) const;
 
         DELETE_COPY(DatumProducer);
@@ -92,8 +94,10 @@ namespace op
                 }
                 // Get cv::Mat
                 datum.name = spProducer->getFrameName();
-                datum.cvInputData = spProducer->getFrame();
-                datum.cvOutputData = datum.cvInputData;
+				datum.cvOutputData = spProducer->getFrame();
+				currentGpuMat.upload(datum.cvOutputData);
+				datum.cvInputData = currentGpuMat;
+                
                 // Check frames are not empty
                 checkIfTooManyConsecutiveEmptyFrames(mNumberConsecutiveEmptyFrames, datum.cvInputData.empty());
             }

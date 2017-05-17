@@ -62,5 +62,27 @@ namespace op
                 error(e.what(), __LINE__, __FUNCTION__, __FILE__);
             }
         }
+
+		void HandRenderer::renderHands(GpuArray<float>& outputData, const Array<float>& handKeyPoints)
+		{
+			try
+			{
+				if (!handKeyPoints.empty())
+				{
+					gpuToGpuMemoryIfNotCopiedYet(outputData.getPtr());
+					cudaMemcpy(pGpuHands, handKeyPoints.getConstPtr(), 2 * HAND_NUMBER_PARTS * 3 * sizeof(float), cudaMemcpyHostToDevice);
+					renderHandsGpu(*spGpuMemoryPtr, mFrameSize, pGpuHands, handKeyPoints.getSize(0));
+					cudaCheck(__LINE__, __FUNCTION__, __FILE__);
+				}
+				// GPU memory to CPU if last renderer
+				gpuToGpuMemoryIfLastRenderer(outputData.getPtr());
+				cudaCheck(__LINE__, __FUNCTION__, __FILE__);
+			}
+			catch (const std::exception& e)
+			{
+				error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+			}
+		}
+
     }
 }
