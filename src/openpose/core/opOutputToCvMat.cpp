@@ -28,4 +28,19 @@ namespace op
             return cv::Mat{};
         }
     }
+
+	void OpOutputToCvMat::formatToCvMat(const GpuArray<float>& outputData, cv::cuda::GpuMat& cvMat) const {
+		try
+		{
+			// Security checks
+			if (outputData.empty())
+				error("Wrong input element (empty outputData).", __LINE__, __FUNCTION__, __FILE__);
+
+			floatPtrToUCharGpuMat(cvMat, outputData.getConstPtr(), mOutputResolution, 3);
+		}
+		catch (const std::exception& e)
+		{
+			error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+		}
+    }
 }

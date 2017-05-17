@@ -56,6 +56,15 @@ namespace op
         }
     }
 
+	void floatPtrToUCharGpuMat(cv::cuda::GpuMat& cvMat, const float* const floatImage, const cv::Size& resolutionSize, const int resolutionChannels) {
+		if(cvMat.rows != resolutionSize.height || cvMat.cols != resolutionSize.width || cvMat.type() != CV_8UC3) {
+			cvMat = cv::cuda::GpuMat(resolutionSize.height, resolutionSize.width, CV_8UC3);
+		}
+
+		floatPtrToGpuMat(cvMat.data, floatImage , cvMat.channels(), resolutionSize, cvMat.step);
+    }
+
+
     void unrollArrayToUCharCvMat(cv::Mat& cvMatResult, const Array<float>& array)
     {
         try
@@ -141,6 +150,12 @@ namespace op
         }
     }
 
+	void uCharGpuMatToFloatPtr(float* floatImage, const cv::cuda::GpuMat& cvImage, const bool normalize, const unsigned long offset) {
+		
+		gpuMatToFloatPtr(floatImage, cvImage.data, cvImage.channels(), cv::Size(cvImage.cols, cvImage.rows), cvImage.step, normalize, offset);
+    }
+
+
     double resizeGetScaleFactor(const cv::Size& initialSize, const cv::Size& targetSize)
     {
         try
@@ -176,4 +191,24 @@ namespace op
             return cv::Mat{};
         }
     }
+
+	void resizeFixedAspectRatioGpu(const cv::cuda::GpuMat& cvMat, cv::cuda::GpuMat& resultingCvMat, const double scaleFactor, const cv::Size& targetSize, const int borderMode, const cv::Scalar& borderValue) {
+		try
+		{
+			cv::Mat M = cv::Mat::eye(2, 3, CV_64F);
+			M.at<double>(0, 0) = scaleFactor;
+			M.at<double>(1, 1) = scaleFactor;
+			if (scaleFactor != 1. || targetSize != cvMat.size())
+				cv::cuda::warpAffine(cvMat, resultingCvMat, M, targetSize, (scaleFactor < 1. ? cv::INTER_LINEAR : cv::INTER_CUBIC), borderMode, borderValue);
+			else
+				resultingCvMat = cvMat.clone();
+		}
+		catch (const std::exception& e)
+		{
+			error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+			
+		}
+		
+    }
+
 }

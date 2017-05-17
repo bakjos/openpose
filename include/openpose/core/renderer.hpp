@@ -26,6 +26,10 @@ namespace op
 
         void gpuToCpuMemoryIfLastRenderer(float* cpuMemory);
 
+		void gpuToGpuMemoryIfNotCopiedYet(const float* const gpuMemory);
+
+		void gpuToGpuMemoryIfLastRenderer(float* gpuMemory);
+
     private:
         const unsigned long long mVolume;
         bool mIsFirstRenderer;

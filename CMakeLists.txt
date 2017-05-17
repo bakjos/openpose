@@ -86,6 +86,7 @@ endif()
 
 
 
+
 # ---[ Includes
 set(OpenPose_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(OpenPose_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
@@ -140,10 +141,10 @@ list(APPEND OpenPose_LINKER_LIBS PUBLIC ${HDF5_LIBRARIES} ${HDF5_HL_LIBRARIES})
 
 
 # ---[ OpenCV
-find_package(OpenCV QUIET COMPONENTS core highgui imgproc imgcodecs videoio)
+find_package(OpenCV QUIET COMPONENTS core highgui imgproc imgcodecs videoio cudawarping cudev cudaimgproc)
 
 if(NOT OpenCV_FOUND) # if not OpenCV 3.x, then imgcodecs are not found
-	find_package(OpenCV REQUIRED COMPONENTS core highgui imgproc)
+	find_package(OpenCV REQUIRED COMPONENTS core highgui imgproc gpu)
 endif()
 
 list(APPEND OpenPose_INCLUDE_DIRS PUBLIC ${OpenCV_INCLUDE_DIRS})
@@ -174,8 +175,6 @@ endif()
 if ( WIN32) 
 	list(APPEND OpenPose_DEFINITIONS PUBLIC -DCMAKE_WINDOWS_BUILD)
 endif()
-
-
 
 include(cmake/Cuda.cmake)
 

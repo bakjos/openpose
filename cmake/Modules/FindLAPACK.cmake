@@ -95,6 +95,8 @@ if(BLAS_FOUND)
     SET(LAPACK_INFO "mkl")
   ENDIF()
 
+  message("Lapack libraries" : ${MKL_LAPACK_LIBRARIES})
+
   # OpenBlas
   IF((NOT LAPACK_INFO) AND (BLAS_INFO STREQUAL "open"))
     SET(CMAKE_REQUIRED_LIBRARIES ${BLAS_LIBRARIES})

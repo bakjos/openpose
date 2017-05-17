@@ -100,4 +100,35 @@ namespace op
             error(e.what(), __LINE__, __FUNCTION__, __FILE__);
         }
     }
+
+	void Renderer::gpuToGpuMemoryIfNotCopiedYet(const float* const gpuMemory)
+	{
+		try
+		{
+			if (!*spGpuMemoryAllocated)
+			{
+				cudaMemcpy(*spGpuMemoryPtr, gpuMemory, mVolume * sizeof(float), cudaMemcpyDeviceToDevice);
+				*spGpuMemoryAllocated = true;
+			}
+		}
+		catch (const std::exception& e)
+		{
+			error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+		}
+    }
+
+	void Renderer::gpuToGpuMemoryIfLastRenderer(float* gpuMemory) {
+		try
+		{
+			if (*spGpuMemoryAllocated && mIsLastRenderer)
+			{
+				cudaMemcpy(gpuMemory, *spGpuMemoryPtr, mVolume * sizeof(float), cudaMemcpyDeviceToDevice);
+				*spGpuMemoryAllocated = false;
+			}
+		}
+		catch (const std::exception& e)
+		{
+			error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+		}
+    }
 }

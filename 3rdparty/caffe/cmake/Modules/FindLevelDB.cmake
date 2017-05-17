@@ -39,6 +39,6 @@ if(LEVELDB_FOUND)
       set(LEVELDB_VERSION "${LEVELDB_VERSION_MAJOR}.${LEVELDB_VERSION_MINOR}")
     endif()
 
-    caffe_clear_vars(__line __version_lines)
+    openpose_clear_vars(__line __version_lines)
   endif()
 endif()

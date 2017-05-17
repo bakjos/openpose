@@ -211,6 +211,56 @@ namespace op
         }
     }
 
+	std::string PoseRenderer::renderPoseInternal(const Array<float>& poseKeyPoints, int elementRendered, int numberPeople, const double scaleNetToOutput) {
+		const auto numberBodyParts = POSE_NUMBER_BODY_PARTS[(int)mPoseModel];
+		const auto numberBodyPartsPlusBkg = numberBodyParts + 1;
+		std::string elementRenderedName;
+		// Draw poseKeyPoints
+		if (elementRendered == 0)
+		{
+			if (!poseKeyPoints.empty())
+				cudaMemcpy(pGpuPose, poseKeyPoints.getConstPtr(), numberPeople * numberBodyParts * 3 * sizeof(float), cudaMemcpyHostToDevice);
+			renderPoseGpu(*spGpuMemoryPtr, mPoseModel, numberPeople, mOutputSize, pGpuPose, mShowGooglyEyes, mBlendOriginalFrame, mAlphaPose);
+		}
+		else
+		{
+			if (scaleNetToOutput == -1.)
+				error("Non valid scaleNetToOutput.", __LINE__, __FUNCTION__, __FILE__);
+			// Draw specific body part or bkg
+			if (elementRendered <= numberBodyPartsPlusBkg)
+			{
+				elementRenderedName = mPartIndexToName.at(elementRendered - 1);
+				renderBodyPartGpu(*spGpuMemoryPtr, mPoseModel, mOutputSize, spPoseExtractor->getHeatMapCpuConstPtr(), mHeatMapsSize,
+					scaleNetToOutput, elementRendered, (mBlendOriginalFrame ? mAlphaHeatMap : 1.f));
+			}
+			// Draw PAFs (Part Affinity Fields)
+			else if (elementRendered == numberBodyPartsPlusBkg + 1)
+			{
+				elementRenderedName = "Heatmaps";
+				renderBodyPartsGpu(*spGpuMemoryPtr, mPoseModel, mOutputSize, spPoseExtractor->getHeatMapCpuConstPtr(), mHeatMapsSize, scaleNetToOutput,
+					(mBlendOriginalFrame ? mAlphaHeatMap : 1.f));
+			}
+			// Draw PAFs (Part Affinity Fields)
+			else if (elementRendered == numberBodyPartsPlusBkg + 2)
+			{
+				elementRenderedName = "PAFs (Part Affinity Fields)";
+				renderPartAffinityFieldsGpu(*spGpuMemoryPtr, mPoseModel, mOutputSize, spPoseExtractor->getHeatMapCpuConstPtr(),
+					mHeatMapsSize, scaleNetToOutput, (mBlendOriginalFrame ? mAlphaHeatMap : 1.f));
+			}
+			// Draw affinity between 2 body parts
+			else
+			{
+				const auto affinityPart = (elementRendered - numberBodyPartsPlusBkg - 3) * 2;
+				const auto affinityPartMapped = POSE_MAP_IDX[(int)mPoseModel].at(affinityPart);
+				elementRenderedName = mPartIndexToName.at(affinityPartMapped);
+				elementRenderedName = elementRenderedName.substr(0, elementRenderedName.find("("));
+				renderPartAffinityFieldGpu(*spGpuMemoryPtr, mPoseModel, mOutputSize, spPoseExtractor->getHeatMapCpuConstPtr(),
+					mHeatMapsSize, scaleNetToOutput, affinityPartMapped, (mBlendOriginalFrame ? mAlphaHeatMap : 1.f));
+			}
+		}
+		return elementRenderedName;
+    }
+
     std::pair<int, std::string> PoseRenderer::renderPose(Array<float>& outputData, const Array<float>& poseKeyPoints, const double scaleNetToOutput)
     {
         try
@@ -228,51 +278,9 @@ namespace op
             {
                 cpuToGpuMemoryIfNotCopiedYet(outputData.getPtr());
                 cudaCheck(__LINE__, __FUNCTION__, __FILE__);
-                const auto numberBodyParts = POSE_NUMBER_BODY_PARTS[(int)mPoseModel];
-                const auto numberBodyPartsPlusBkg = numberBodyParts+1;
-                // Draw poseKeyPoints
-                if (elementRendered == 0)
-                {
-                    if (!poseKeyPoints.empty())
-                        cudaMemcpy(pGpuPose, poseKeyPoints.getConstPtr(), numberPeople * numberBodyParts * 3 * sizeof(float), cudaMemcpyHostToDevice);
-                    renderPoseGpu(*spGpuMemoryPtr, mPoseModel, numberPeople, mOutputSize, pGpuPose, mShowGooglyEyes, mBlendOriginalFrame, mAlphaPose);
-                }
-                else
-                {
-                    if (scaleNetToOutput == -1.)
-                        error("Non valid scaleNetToOutput.", __LINE__, __FUNCTION__, __FILE__);
-                    // Draw specific body part or bkg
-                    if (elementRendered <= numberBodyPartsPlusBkg)
-                    {
-                        elementRenderedName = mPartIndexToName.at(elementRendered-1);
-                        renderBodyPartGpu(*spGpuMemoryPtr, mPoseModel, mOutputSize, spPoseExtractor->getHeatMapCpuConstPtr(), mHeatMapsSize,
-                                          scaleNetToOutput, elementRendered, (mBlendOriginalFrame ? mAlphaHeatMap : 1.f));
-                    }
-                    // Draw PAFs (Part Affinity Fields)
-                    else if (elementRendered == numberBodyPartsPlusBkg+1)
-                    {
-                        elementRenderedName = "Heatmaps";
-                        renderBodyPartsGpu(*spGpuMemoryPtr, mPoseModel, mOutputSize, spPoseExtractor->getHeatMapCpuConstPtr(), mHeatMapsSize, scaleNetToOutput,
-                                           (mBlendOriginalFrame ? mAlphaHeatMap : 1.f));
-                    }
-                    // Draw PAFs (Part Affinity Fields)
-                    else if (elementRendered == numberBodyPartsPlusBkg+2)
-                    {
-                        elementRenderedName = "PAFs (Part Affinity Fields)";
-                        renderPartAffinityFieldsGpu(*spGpuMemoryPtr, mPoseModel, mOutputSize, spPoseExtractor->getHeatMapCpuConstPtr(),
-                                                    mHeatMapsSize, scaleNetToOutput, (mBlendOriginalFrame ? mAlphaHeatMap : 1.f));
-                    }
-                    // Draw affinity between 2 body parts
-                    else
-                    {
-                        const auto affinityPart = (elementRendered-numberBodyPartsPlusBkg-3)*2;
-                        const auto affinityPartMapped = POSE_MAP_IDX[(int)mPoseModel].at(affinityPart);
-                        elementRenderedName = mPartIndexToName.at(affinityPartMapped);
-                        elementRenderedName = elementRenderedName.substr(0, elementRenderedName.find("("));
-                        renderPartAffinityFieldGpu(*spGpuMemoryPtr, mPoseModel, mOutputSize, spPoseExtractor->getHeatMapCpuConstPtr(),
-                                                   mHeatMapsSize, scaleNetToOutput, affinityPartMapped, (mBlendOriginalFrame ? mAlphaHeatMap : 1.f));
-                    }     
-                }
+
+				elementRenderedName = renderPoseInternal(poseKeyPoints, elementRendered, numberPeople, scaleNetToOutput);
+                
             }
             // GPU memory to CPU if last renderer
             gpuToCpuMemoryIfLastRenderer(outputData.getPtr());
@@ -286,4 +294,38 @@ namespace op
             return std::make_pair(-1, "");
         }
     }
+
+	std::pair<int, std::string> PoseRenderer::renderPose(GpuArray<float>& outputData, const Array<float>& poseKeyPoints, const double scaleNetToOutput)
+	{
+		try
+		{
+			// Security checks
+			if (outputData.empty())
+				error("Empty outputData.", __LINE__, __FUNCTION__, __FILE__);
+
+			const auto elementRendered = mElementToRender.load(); // I prefer std::round(T&) over intRound(T) for std::atomic
+			std::string elementRenderedName;
+			const auto numberPeople = poseKeyPoints.getSize(0);
+
+			// GPU rendering
+			if (numberPeople > 0 || elementRendered != 0 || !mBlendOriginalFrame)
+			{
+				gpuToGpuMemoryIfNotCopiedYet(outputData.getPtr());
+				cudaCheck(__LINE__, __FUNCTION__, __FILE__);
+
+				elementRenderedName = renderPoseInternal(poseKeyPoints, elementRendered, numberPeople, scaleNetToOutput);
+
+			}
+			// GPU memory to GPU if last renderer
+			gpuToGpuMemoryIfLastRenderer(outputData.getPtr());
+			cudaCheck(__LINE__, __FUNCTION__, __FILE__);
+
+			return std::make_pair(elementRendered, elementRenderedName);
+		}
+		catch (const std::exception& e)
+		{
+			error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+			return std::make_pair(-1, "");
+		}
+	}
 }

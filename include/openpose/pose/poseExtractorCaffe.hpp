@@ -26,6 +26,8 @@ namespace op
         void netInitializationOnThread();
 
         void forwardPass(const Array<float>& inputNetData, const cv::Size& inputDataSize);
+		
+		void forwardPass(const GpuArray<float>& inputNetData, const cv::Size& inputDataSize);
 
         const float* getHeatMapCpuConstPtr() const;
 
@@ -34,6 +36,9 @@ namespace op
         const float* getPoseGpuConstPtr() const;
 
     private:
+
+		void forwardPassInternal(const cv::Size& inputDataSize);
+
         std::shared_ptr<Net> spNet;
         std::shared_ptr<ResizeAndMergeCaffe<float>> spResizeAndMergeCaffe;
         std::shared_ptr<NmsCaffe<float>> spNmsCaffe;
@@ -43,6 +48,9 @@ namespace op
         std::shared_ptr<caffe::Blob<float>> spHeatMapsBlob;
         std::shared_ptr<caffe::Blob<float>> spPeaksBlob;
         std::shared_ptr<caffe::Blob<float>> spPoseBlob;
+
+		const std::array<int, 4> mNetInputSize4D;
+		const unsigned long mNetInputMemory;
 
         DELETE_COPY(PoseExtractorCaffe);
     };

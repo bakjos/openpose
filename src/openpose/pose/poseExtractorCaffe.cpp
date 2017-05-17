@@ -7,6 +7,7 @@
 #include "openpose/utilities/fastMath.hpp"
 #include "openpose/utilities/openCv.hpp"
 #include "openpose/pose/poseExtractorCaffe.hpp"
+#include <numeric> // std::accumulate
 
 namespace op
 {
@@ -14,7 +15,9 @@ namespace op
                                            const float scaleGap, const PoseModel poseModel, const std::string& modelFolder, const int gpuId, const std::vector<HeatMapType>& heatMapTypes,
                                            const ScaleMode heatMapScaleMode) :
         PoseExtractor{netOutputSize, outputSize, poseModel, heatMapTypes, heatMapScaleMode},
-        spNet{std::make_shared<NetCaffe>(std::array<int,4>{scaleNumber, 3, (int)netInputSize.height, (int)netInputSize.width},
+		mNetInputSize4D{scaleNumber, 3, (int)netInputSize.height, (int)netInputSize.width },
+		mNetInputMemory{ std::accumulate(mNetInputSize4D.begin(), mNetInputSize4D.end(), 1, std::multiplies<int>()) * sizeof(float) },
+		spNet{ std::make_shared<NetCaffe>(std::array<int,4> { scaleNumber, 3, (int)netInputSize.height, (int)netInputSize.width } ,
                                          modelFolder + POSE_PROTOTXT[(int)poseModel], modelFolder + POSE_TRAINED_MODEL[(int)poseModel], gpuId)},
         spResizeAndMergeCaffe{std::make_shared<ResizeAndMergeCaffe<float>>()},
         spNmsCaffe{std::make_shared<NmsCaffe<float>>()},
@@ -66,6 +69,41 @@ namespace op
         }
     }
 
+	void PoseExtractorCaffe::forwardPassInternal(const cv::Size& inputDataSize) {
+		// 2. Resize heat maps + merge different scales
+#ifndef CPU_ONLY
+		spResizeAndMergeCaffe->Forward_gpu({ spCaffeNetOutputBlob.get() }, { spHeatMapsBlob.get() });       // ~5ms
+		cudaCheck(__LINE__, __FUNCTION__, __FILE__);
+#else
+		error("ResizeAndMergeCaffe CPU version not implemented yet.", __LINE__, __FUNCTION__, __FILE__);
+#endif
+
+		// 3. Get peaks by Non-Maximum Suppression
+		spNmsCaffe->setThreshold(get(PoseProperty::NMSThreshold));
+#ifndef CPU_ONLY
+		spNmsCaffe->Forward_gpu({ spHeatMapsBlob.get() }, { spPeaksBlob.get() });                           // ~2ms
+		cudaCheck(__LINE__, __FUNCTION__, __FILE__);
+#else
+		error("NmsCaffe CPU version not implemented yet.", __LINE__, __FUNCTION__, __FILE__);
+#endif
+
+		// Get scale net to output
+		const auto scaleProducerToNetInput = resizeGetScaleFactor(inputDataSize, mNetOutputSize);
+		const cv::Size netSize{ intRound(scaleProducerToNetInput*inputDataSize.width), intRound(scaleProducerToNetInput*inputDataSize.height) };
+		mScaleNetToOutput = { resizeGetScaleFactor(netSize, mOutputSize) };
+
+		// 4. Connecting body parts
+		spBodyPartConnectorCaffe->setScaleNetToOutput(mScaleNetToOutput);
+		spBodyPartConnectorCaffe->setInterMinAboveThreshold((int)get(PoseProperty::ConnectInterMinAboveThreshold));
+		spBodyPartConnectorCaffe->setInterThreshold((float)get(PoseProperty::ConnectInterThreshold));
+		spBodyPartConnectorCaffe->setMinSubsetCnt((int)get(PoseProperty::ConnectMinSubsetCnt));
+		spBodyPartConnectorCaffe->setMinSubsetScore((float)get(PoseProperty::ConnectMinSubsetScore));
+
+		// GPU version not implemented yet
+		spBodyPartConnectorCaffe->Forward_cpu({ spHeatMapsBlob.get(), spPeaksBlob.get() }, mPoseKeyPoints);
+		// spBodyPartConnectorCaffe->Forward_gpu({spHeatMapsBlob.get(), spPeaksBlob.get()}, {spPoseBlob.get()}, mPoseKeyPoints);
+    }
+
     void PoseExtractorCaffe::forwardPass(const Array<float>& inputNetData, const cv::Size& inputDataSize)
     {
         try
@@ -76,45 +114,41 @@ namespace op
 
             // 1. Caffe deep network
             spNet->forwardPass(inputNetData.getConstPtr());                                                     // ~79.3836ms
-
-            // 2. Resize heat maps + merge different scales
-            #ifndef CPU_ONLY
-                spResizeAndMergeCaffe->Forward_gpu({spCaffeNetOutputBlob.get()}, {spHeatMapsBlob.get()});       // ~5ms
-                cudaCheck(__LINE__, __FUNCTION__, __FILE__);
-            #else
-                error("ResizeAndMergeCaffe CPU version not implemented yet.", __LINE__, __FUNCTION__, __FILE__);
-            #endif
-
-            // 3. Get peaks by Non-Maximum Suppression
-            spNmsCaffe->setThreshold(get(PoseProperty::NMSThreshold));
-            #ifndef CPU_ONLY
-                spNmsCaffe->Forward_gpu({spHeatMapsBlob.get()}, {spPeaksBlob.get()});                           // ~2ms
-                cudaCheck(__LINE__, __FUNCTION__, __FILE__);
-            #else
-                error("NmsCaffe CPU version not implemented yet.", __LINE__, __FUNCTION__, __FILE__);
-            #endif
-
-            // Get scale net to output
-            const auto scaleProducerToNetInput = resizeGetScaleFactor(inputDataSize, mNetOutputSize);
-            const cv::Size netSize{intRound(scaleProducerToNetInput*inputDataSize.width), intRound(scaleProducerToNetInput*inputDataSize.height)};
-            mScaleNetToOutput = {resizeGetScaleFactor(netSize, mOutputSize)};
-
-            // 4. Connecting body parts
-            spBodyPartConnectorCaffe->setScaleNetToOutput(mScaleNetToOutput);
-            spBodyPartConnectorCaffe->setInterMinAboveThreshold((int)get(PoseProperty::ConnectInterMinAboveThreshold));
-            spBodyPartConnectorCaffe->setInterThreshold((float)get(PoseProperty::ConnectInterThreshold));
-            spBodyPartConnectorCaffe->setMinSubsetCnt((int)get(PoseProperty::ConnectMinSubsetCnt));
-            spBodyPartConnectorCaffe->setMinSubsetScore((float)get(PoseProperty::ConnectMinSubsetScore));
-
-            // GPU version not implemented yet
-            spBodyPartConnectorCaffe->Forward_cpu({spHeatMapsBlob.get(), spPeaksBlob.get()}, mPoseKeyPoints);
-            // spBodyPartConnectorCaffe->Forward_gpu({spHeatMapsBlob.get(), spPeaksBlob.get()}, {spPoseBlob.get()}, mPoseKeyPoints);
+			
+        	forwardPassInternal(inputDataSize);
+            
         }
         catch (const std::exception& e)
         {
             error(e.what(), __LINE__, __FUNCTION__, __FILE__);
         }
     }
+
+	void PoseExtractorCaffe::forwardPass(const GpuArray<float>& inputNetData, const cv::Size& inputDataSize)
+	{
+		try
+		{
+			// Security checks
+			if (inputNetData.empty())
+				error("Empty inputNetData.", __LINE__, __FUNCTION__, __FILE__);
+
+
+			cudaMemcpy(spNet->getInputDataGpuPtr(), inputNetData.getConstPtr(), mNetInputMemory, cudaMemcpyDeviceToDevice);
+			cudaCheck(__LINE__, __FUNCTION__, __FILE__);
+
+	
+			// 1. Caffe deep network
+			spNet->forwardPass();                                                     // ~79.3836ms
+
+			forwardPassInternal(inputDataSize);
+
+		}
+		catch (const std::exception& e)
+		{
+			error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+		}
+	}
+
 
     const float* PoseExtractorCaffe::getHeatMapCpuConstPtr() const
     {

@@ -6,6 +6,7 @@
 #include <thread>
 #include <opencv2/core/core.hpp>
 #include "../core/array.hpp"
+#include "../core/gpuArray.hpp"
 #include "../utilities/macros.hpp"
 #include "poseParameters.hpp"
 #include "../core/enumClasses.hpp"
@@ -21,6 +22,8 @@ namespace op
         void initializationOnThread();
 
         virtual void forwardPass(const Array<float>& inputNetData, const cv::Size& inputDataSize) = 0;
+		
+    	virtual void forwardPass(const GpuArray<float>& inputNetData, const cv::Size& inputDataSize) = 0;
 
         virtual const float* getHeatMapCpuConstPtr() const = 0;
 

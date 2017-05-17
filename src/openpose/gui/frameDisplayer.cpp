@@ -9,7 +9,23 @@ namespace op
         mWindowName{windowedName},
         mGuiDisplayMode{(fullScreen ? GuiDisplayMode::FullScreen : GuiDisplayMode::Windowed)}
     {
-		initialized = false;
+    }
+
+    void FrameDisplayer::initializationOnThread()
+    {
+        try
+        {
+            setGuiDisplayMode(mGuiDisplayMode);
+
+            const cv::Mat blackFrame{mWindowedSize.height, mWindowedSize.width, CV_32FC3, {0,0,0}};
+            FrameDisplayer::displayFrame(blackFrame);
+            cv::waitKey(1); // This one will show most probably a white image (I guess the program does not have time to render in 1 msec)
+            // cv::waitKey(1000); // This one will show the desired black image
+        }
+        catch (const std::exception& e)
+        {
+            error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+        }
     }
 
     void FrameDisplayer::setGuiDisplayMode(const GuiDisplayMode displayMode)
@@ -57,22 +73,6 @@ namespace op
     {
         try
         {
-
-			if ( !initialized) {
-				try
-				{
-					setGuiDisplayMode(mGuiDisplayMode);
-					initialized = true;
-					const cv::Mat blackFrame{ mWindowedSize.height, mWindowedSize.width, CV_32FC3,{ 0,0,0 } };
-					FrameDisplayer::displayFrame(blackFrame);
-					cv::waitKey(100);
-				}
-				catch (const std::exception& e)
-				{
-					error(e.what(), __LINE__, __FUNCTION__, __FILE__);
-				}
-			}
-
             cv::imshow(mWindowName, frame);
             if (waitKeyValue != -1)
                 cv::waitKey(waitKeyValue);

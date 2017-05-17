@@ -21,8 +21,8 @@ endmacro()
 ################################################################################################
 # Clears variables from list
 # Usage:
-#   caffe_clear_vars(<variables_list>)
-macro(caffe_clear_vars)
+#   openpose_clear_vars(<variables_list>)
+macro(openpose_clear_vars)
   foreach(_var ${ARGN})
     unset(${_var})
   endforeach()

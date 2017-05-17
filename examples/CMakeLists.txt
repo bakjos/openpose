@@ -1,5 +1,6 @@
 file(GLOB examples_fld "${PROJECT_SOURCE_DIR}/examples/*")
 
+
 foreach(source_folder ${examples_fld})
   file(GLOB_RECURSE example_srcs "${source_folder}/*.cpp")
   get_filename_component(source_name ${source_folder} NAME_WE)

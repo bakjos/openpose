@@ -4,6 +4,7 @@
 #include <memory> // std::shared_ptr
 #include <opencv2/core/core.hpp>
 #include "../core/array.hpp"
+#include "../core/gpuArray.hpp"
 #include "../core/renderer.hpp"
 #include "../utilities/macros.hpp"
 #include "poseExtractor.hpp"
@@ -44,7 +45,12 @@ namespace op
 
         std::pair<int, std::string> renderPose(Array<float>& outputData, const Array<float>& poseKeyPoints, const double scaleNetToOutput = -1.);
 
+		std::pair<int, std::string> renderPose(GpuArray<float>& outputData, const Array<float>& poseKeyPoints, const double scaleNetToOutput = -1.);
+
     private:
+
+		std::string renderPoseInternal(const Array<float>& poseKeyPoints, int elementRendered, int numberPeople, const double scaleNetToOutput);
+
         const cv::Size mHeatMapsSize;
         const cv::Size mOutputSize;
         const PoseModel mPoseModel;

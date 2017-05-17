@@ -17,6 +17,7 @@
 #include <openpose/gui/headers.hpp>
 #include <openpose/pose/headers.hpp>
 #include <openpose/utilities/headers.hpp>
+#include <openpose/utilities/cuda.hpp>
 
 // Gflags in the command line terminal. Check all the options by adding the flag `--help`, e.g. `openpose.bin --help`.
 // Note: This command will show you flags for several files. Check only the flags for the file you are checking. E.g. for `openpose.bin`, look for `Flags from examples/openpose/openpose.cpp:`.
@@ -118,23 +119,38 @@ int openPoseTutorialPose2()
     cv::Mat inputImage = op::loadImage(FLAGS_image_path, CV_LOAD_IMAGE_COLOR); // Alternative: cv::imread(FLAGS_image_path, CV_LOAD_IMAGE_COLOR);
     if(inputImage.empty())
         op::error("Could not open or find the image: " + FLAGS_image_path, __LINE__, __FUNCTION__, __FILE__);
-    // Step 2 - Format input image to OpenPose input and output formats
-    const auto netInputArray = cvMatToOpInput.format(inputImage);
+
+	cv::cuda::GpuMat inputImageGpu;
+	inputImageGpu.upload(inputImage);
+
+	// Step 2 - Format input image to OpenPose input and output formats
+	op::GpuArray<float> gpuNetInputArray;
+	cvMatToOpInput.format(gpuNetInputArray, inputImageGpu);
+	//const auto gpuNetInputArray = cvMatToOpInput.formatGpu(inputImageGpu);
+    //const auto netInputArray = cvMatToOpInput.format(inputImage);
+
+
     double scaleInputToOutput;
-    op::Array<float> outputArray;
-    std::tie(scaleInputToOutput, outputArray) = cvMatToOpOutput.format(inputImage);
+    op::GpuArray<float> outputArray;
+    cvMatToOpOutput.format(inputImageGpu, scaleInputToOutput, outputArray);
     // Step 3 - Estimate poseKeyPoints
-    poseExtractorPtr->forwardPass(netInputArray, inputImage.size());
+	//poseExtractorPtr->forwardPass(netInputArray, inputImage.size());
+    poseExtractorPtr->forwardPass(gpuNetInputArray, inputImage.size());
+
+
     const auto poseKeyPoints = poseExtractorPtr->getPoseKeyPoints();
     const auto scaleNetToOutput = poseExtractorPtr->getScaleNetToOutput();
     // Step 4 - Render pose
     poseRenderer.renderPose(outputArray, poseKeyPoints, scaleNetToOutput);
     // Step 5 - OpenPose output format to cv::Mat
-    auto outputImage = opOutputToCvMat.formatToCvMat(outputArray);
+	cv::cuda::GpuMat outputImage;
+	opOutputToCvMat.formatToCvMat(outputArray, outputImage);
+
+	outputImage.download(inputImage);
 
     // ------------------------- SHOWING RESULT AND CLOSING -------------------------
     // Step 1 - Show results
-    frameDisplayer.displayFrame(outputImage, 0); // Alternative: cv::imshow(outputImage) + cv::waitKey(0)
+    frameDisplayer.displayFrame(inputImage, 0); // Alternative: cv::imshow(outputImage) + cv::waitKey(0)
     // Step 2 - Logging information message
     op::log("Example 2 successfully finished.", op::Priority::Max);
     // Return successful message
