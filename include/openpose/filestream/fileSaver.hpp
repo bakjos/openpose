@@ -1,8 +1,8 @@
-#ifndef OPENPOSE__FILESTREAM__DATA_SAVER_HPP
-#define OPENPOSE__FILESTREAM__DATA_SAVER_HPP
+#ifndef OPENPOSE_FILESTREAM_DATA_SAVER_HPP
+#define OPENPOSE_FILESTREAM_DATA_SAVER_HPP
 
 #include <string>
-#include "../utilities/string.hpp"
+#include <openpose/utilities/string.hpp>
 
 namespace op
 {
@@ -20,4 +20,4 @@ namespace op
     };
 }
 
-#endif // OPENPOSE__FILESTREAM__DATA_SAVER_HPP
+#endif // OPENPOSE_FILESTREAM_DATA_SAVER_HPP

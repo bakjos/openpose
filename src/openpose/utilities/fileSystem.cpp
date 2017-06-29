@@ -1,7 +1,7 @@
 #include <boost/filesystem.hpp>
 #include <boost/range/iterator_range_core.hpp>
-#include "openpose/utilities/errorAndLog.hpp"
-#include "openpose/utilities/fileSystem.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/fileSystem.hpp>
 
 namespace op
 {
@@ -57,7 +57,7 @@ namespace op
             if (!directoryPath.empty())
             {
                 std::replace(directoryPath.begin(), directoryPath.end(), '\\', '/'); // replace all '\\' to '/';
-                if (*directoryPath.cend() != '/')
+                if (directoryPath.back() != '/')
                     directoryPath = directoryPath + "/";
             }
             return directoryPath;

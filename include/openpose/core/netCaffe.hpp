@@ -1,12 +1,12 @@
 #ifdef USE_CAFFE
-#ifndef OPENPOSE__CORE__NET_CAFFE_HPP
-#define OPENPOSE__CORE__NET_CAFFE_HPP
+#ifndef OPENPOSE_CORE_NET_CAFFE_HPP
+#define OPENPOSE_CORE_NET_CAFFE_HPP
 
 #include <array>
 #include <memory> // std::shared_ptr
 #include <string>
 #include <caffe/net.hpp>
-#include "../utilities/macros.hpp"
+#include <openpose/utilities/macros.hpp>
 #include "net.hpp"
 
 namespace op
@@ -16,6 +16,8 @@ namespace op
     public:
         NetCaffe(const std::array<int, 4>& netInputSize4D, const std::string& caffeProto, const std::string& caffeTrainedModel, const int gpuId = 0,
                  const std::string& lastBlobName = "net_output");
+
+        virtual ~NetCaffe();
 
         void initializationOnThread();
 
@@ -45,5 +47,5 @@ namespace op
     };
 }
 
-#endif // OPENPOSE__CORE__NET_CAFFE_HPP
+#endif // OPENPOSE_CORE_NET_CAFFE_HPP
 #endif

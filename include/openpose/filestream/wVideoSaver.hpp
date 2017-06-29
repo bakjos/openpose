@@ -1,11 +1,10 @@
-#ifndef OPENPOSE__FILESTREAM__W_VIDEO_SAVER_HPP
-#define OPENPOSE__FILESTREAM__W_VIDEO_SAVER_HPP
+#ifndef OPENPOSE_FILESTREAM_W_VIDEO_SAVER_HPP
+#define OPENPOSE_FILESTREAM_W_VIDEO_SAVER_HPP
 
 #include <memory> // std::shared_ptr
 #include <string>
 #include <vector>
-#include <opencv2/core/core.hpp>
-#include "../thread/workerConsumer.hpp"
+#include <openpose/thread/workerConsumer.hpp>
 #include "videoSaver.hpp"
 
 namespace op
@@ -32,10 +31,10 @@ namespace op
 
 
 // Implementation
-#include "../utilities/errorAndLog.hpp"
-#include "../utilities/macros.hpp"
-#include "../utilities/pointerContainer.hpp"
-#include "../utilities/profiler.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/macros.hpp>
+#include <openpose/utilities/pointerContainer.hpp>
+#include <openpose/utilities/profiler.hpp>
 namespace op
 {
     template<typename TDatums>
@@ -84,4 +83,4 @@ namespace op
     COMPILE_TEMPLATE_DATUM(WVideoSaver);
 }
 
-#endif // OPENPOSE__FILESTREAM__W_VIDEO_SAVER_HPP
+#endif // OPENPOSE_FILESTREAM_W_VIDEO_SAVER_HPP

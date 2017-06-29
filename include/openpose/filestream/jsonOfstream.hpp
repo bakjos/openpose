@@ -1,9 +1,9 @@
-#ifndef OPENPOSE__FILESTREAM__JSON_OFSTREAM_HPP
-#define OPENPOSE__FILESTREAM__JSON_OFSTREAM_HPP
+#ifndef OPENPOSE_FILESTREAM_JSON_OFSTREAM_HPP
+#define OPENPOSE_FILESTREAM_JSON_OFSTREAM_HPP
 
 #include <fstream> // std::ofstream
 #include <string>
-#include "../utilities/macros.hpp"
+#include <openpose/utilities/macros.hpp>
 
 namespace op
 {
@@ -47,4 +47,4 @@ namespace op
     };
 }
 
-#endif // OPENPOSE__FILESTREAM__JSON_OFSTREAM_HPP
+#endif // OPENPOSE_FILESTREAM_JSON_OFSTREAM_HPP

@@ -56,20 +56,20 @@ namespace op {
 
 	}
 	
-	void gpuMatToFloatPtr(float* floatImage, const unsigned char* imgData, const int channels, const cv::Size& sourceSize, const size_t step, const bool normalize, const unsigned long offset) {
+	void gpuMatToFloatPtr(float* floatImage, const unsigned char* imgData, const int channels, const Point<int>& sourceSize, const size_t step, const bool normalize, const unsigned long offset) {
 		dim3 threadsPerBlock;
 		dim3 numBlocks;
 		std::tie(threadsPerBlock, numBlocks) = getNumberCudaThreadsAndBlocks(sourceSize);		
 
-		gpuMatToFloatKernel << <threadsPerBlock, numBlocks >> > (floatImage, imgData, channels, sourceSize.width, sourceSize.height, step, normalize, offset);
+		gpuMatToFloatKernel << <threadsPerBlock, numBlocks >> > (floatImage, imgData, channels, sourceSize.x, sourceSize.y, step, normalize, offset);
 		cudaCheck(__LINE__, __FUNCTION__, __FILE__);
 	}
 
-	void floatPtrToGpuMat(unsigned char* imgData, const float* floatImage, const int channels, const cv::Size& sourceSize, const size_t step) {
+	void floatPtrToGpuMat(unsigned char* imgData, const float* floatImage, const int channels, const Point<int>&sourceSize, const size_t step) {
 		dim3 threadsPerBlock;
 		dim3 numBlocks;
 		std::tie(threadsPerBlock, numBlocks) = getNumberCudaThreadsAndBlocks(sourceSize);
-		floatTogpuMatKernel << <threadsPerBlock, numBlocks >> > (imgData, floatImage, channels, sourceSize.width, sourceSize.height, step);
+		floatTogpuMatKernel << <threadsPerBlock, numBlocks >> > (imgData, floatImage, channels, sourceSize.x, sourceSize.y, step);
 	}
 
 }

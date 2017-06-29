@@ -1,13 +1,13 @@
-#ifndef OPENPOSE__PRODUCER__DATUM_PRODUCER_HPP
-#define OPENPOSE__PRODUCER__DATUM_PRODUCER_HPP
+#ifndef OPENPOSE_PRODUCER_DATUM_PRODUCER_HPP
+#define OPENPOSE_PRODUCER_DATUM_PRODUCER_HPP
 
 #include <atomic>
 #include <limits> // std::numeric_limits
 #include <memory> // std::shared_ptr
 #include <tuple>
-#include "../core/datum.hpp"
-#include "../producer/producer.hpp"
-#include "../utilities/macros.hpp"
+#include <openpose/core/datum.hpp>
+#include <openpose/producer/producer.hpp>
+#include <openpose/utilities/macros.hpp>
 
 namespace op
 {
@@ -57,7 +57,7 @@ namespace op
         try
         {
             if (spProducer->getType() != ProducerType::Webcam)
-                spProducer->set(CV_CAP_PROP_POS_FRAMES, frameFirst);
+                spProducer->set(CV_CAP_PROP_POS_FRAMES, (double)frameFirst);
         }
         catch (const std::exception& e)
         {
@@ -102,8 +102,11 @@ namespace op
                 checkIfTooManyConsecutiveEmptyFrames(mNumberConsecutiveEmptyFrames, datum.cvInputData.empty());
             }
             // Check producer is running
-            if (!datumProducerRunning)
+            if (!datumProducerRunning || datum.cvInputData.empty())
                 datums = nullptr;
+            // Increase counter if successful image
+            if (datums != nullptr)
+                mGlobalCounter++;
             // Return result
             return std::make_pair(datumProducerRunning, datums);
         }
@@ -127,4 +130,4 @@ namespace op
 }
 
 
-#endif // OPENPOSE__PRODUCER__DATUM_PRODUCER_HPP
+#endif // OPENPOSE_PRODUCER_DATUM_PRODUCER_HPP

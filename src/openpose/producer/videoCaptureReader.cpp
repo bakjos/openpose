@@ -1,8 +1,8 @@
 #include <iostream>
-#include "openpose/utilities/errorAndLog.hpp"
-#include "openpose/utilities/fastMath.hpp"
-#include "openpose/utilities/string.hpp"
-#include "openpose/producer/videoCaptureReader.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/fastMath.hpp>
+#include <openpose/utilities/string.hpp>
+#include <openpose/producer/videoCaptureReader.hpp>
 
 namespace op
 {
@@ -116,6 +116,18 @@ namespace op
         {
             error(e.what(), __LINE__, __FUNCTION__, __FILE__);
             return 0.;
+        }
+    }
+
+    void VideoCaptureReader::set(const int capProperty, const double value)
+    {
+        try
+        {
+            mVideoCapture.set(capProperty, value);
+        }
+        catch (const std::exception& e)
+        {
+            error(e.what(), __LINE__, __FUNCTION__, __FILE__);
         }
     }
 }

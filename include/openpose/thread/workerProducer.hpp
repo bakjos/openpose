@@ -1,5 +1,5 @@
-#ifndef OPENPOSE__THREAD__WORKER_PRODUCER_HPP
-#define OPENPOSE__THREAD__WORKER_PRODUCER_HPP
+#ifndef OPENPOSE_THREAD_WORKER_PRODUCER_HPP
+#define OPENPOSE_THREAD_WORKER_PRODUCER_HPP
 
 #include "worker.hpp"
 
@@ -26,7 +26,7 @@ namespace op
 
 
 // Implementation
-#include "../utilities/macros.hpp"
+#include <openpose/utilities/macros.hpp>
 namespace op
 {
     template<typename TDatums>
@@ -37,4 +37,4 @@ namespace op
     COMPILE_TEMPLATE_DATUM(WorkerProducer);
 }
 
-#endif // OPENPOSE__THREAD__WORKER_PRODUCER_HPP
+#endif // OPENPOSE_THREAD_WORKER_PRODUCER_HPP

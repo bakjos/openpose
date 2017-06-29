@@ -1,12 +1,12 @@
-#ifndef OPENPOSE__THREAD__THREAD_MANAGER_HPP
-#define OPENPOSE__THREAD__THREAD_MANAGER_HPP
+#ifndef OPENPOSE_THREAD_THREAD_MANAGER_HPP
+#define OPENPOSE_THREAD_THREAD_MANAGER_HPP
 
 #include <atomic>
 #include <memory> // std::unique_ptr<> & std::shared_ptr<>
 #include <set> // std::multiset
 #include <tuple>
 #include <vector>
-#include "../utilities/macros.hpp"
+#include <openpose/utilities/macros.hpp>
 #include "enumClasses.hpp"
 #include "queue.hpp"
 #include "thread.hpp"
@@ -85,8 +85,8 @@ namespace op
 
 // Implementation
 #include <utility> // std::pair
-#include "../utilities/errorAndLog.hpp"
-#include "../utilities/fastMath.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/fastMath.hpp>
 #include "subThread.hpp"
 #include "subThreadNoQueue.hpp"
 #include "subThreadQueueIn.hpp"
@@ -442,7 +442,7 @@ namespace op
             // #threads = maxThreadId+1
             mThreads.resize(maxThreadId);
             for (auto& thread : mThreads)
-                thread = {std::make_shared<Thread<TDatums, TWorker>>()};
+                thread = std::make_shared<Thread<TDatums, TWorker>>();
             mThreads.emplace_back(std::make_shared<Thread<TDatums, TWorker>>(spIsRunning));
         }
         catch (const std::exception& e)
@@ -464,11 +464,11 @@ namespace op
                     maxQueueId = fastMax(maxQueueId, fastMax(std::get<2>(threadWorkerQueue), std::get<3>(threadWorkerQueue)));
 
                 // Check each queue id has at least a worker that uses it as input and another one as output. Special cases:
-                std::vector<std::pair<bool, bool>> usedQueueIds(maxQueueId + 1, {false, false});
+                std::vector<std::pair<bool, bool>> usedQueueIds(maxQueueId+1, {false, false});
                 for (const auto& threadWorkerQueue : mThreadWorkerQueues)
                 {
-					usedQueueIds[std::get<2>(threadWorkerQueue)].first = true;
-					usedQueueIds[std::get<3>(threadWorkerQueue)].second = true;	
+                    usedQueueIds.at(std::get<2>(threadWorkerQueue)).first = true;
+                    usedQueueIds.at(std::get<3>(threadWorkerQueue)).second = true;
                 }
                 // Id 0 must only needs a worker using it as input.
                 usedQueueIds.begin()->second = true;
@@ -493,7 +493,7 @@ namespace op
                 else
                     error("Unknown ThreadManagerMode", __LINE__, __FUNCTION__, __FILE__);
                 for (auto& tQueue : mTQueues)
-                    tQueue = {std::make_shared<TQueue>(mDefaultMaxSizeQueues)};
+                    tQueue = std::make_shared<TQueue>(mDefaultMaxSizeQueues);
             }
         }
         catch (const std::exception& e)
@@ -505,4 +505,4 @@ namespace op
     COMPILE_TEMPLATE_DATUM(ThreadManager);
 }
 
-#endif // OPENPOSE__THREAD__THREAD_MANAGER_HPP
+#endif // OPENPOSE_THREAD_THREAD_MANAGER_HPP

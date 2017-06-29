@@ -1,12 +1,12 @@
-#include "openpose/utilities/errorAndLog.hpp"
-#include "openpose/utilities/openCv.hpp"
-#include "openpose/core/cvMatToOpOutput.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/openCv.hpp>
+#include <openpose/core/cvMatToOpOutput.hpp>
 
 namespace op
 {
-    CvMatToOpOutput::CvMatToOpOutput(const cv::Size& outputResolution, const bool generateOutput) :
+    CvMatToOpOutput::CvMatToOpOutput(const Point<int>& outputResolution, const bool generateOutput) :
         mGenerateOutput{generateOutput},
-        mOutputSize3D{{3, outputResolution.height, outputResolution.width}},
+        mOutputSize3D{{3, outputResolution.y, outputResolution.x}},
 		scaledImage {new cv::cuda::GpuMat()}
     {
     }
@@ -24,8 +24,8 @@ namespace op
                 error("Wrong input element (empty cvInputData).", __LINE__, __FUNCTION__, __FILE__);
 
             // outputData - Reescale keeping aspect ratio and transform to float the output image
-            const cv::Size outputResolution{mOutputSize3D[2], mOutputSize3D[1]};
-            const double scaleInputToOutput = resizeGetScaleFactor(cvInputData.size(), outputResolution);
+            const Point<int> outputResolution{mOutputSize3D[2], mOutputSize3D[1]};
+            const double scaleInputToOutput = resizeGetScaleFactor(Point<int>{cvInputData.cols, cvInputData.rows}, outputResolution);
             const cv::Mat frameWithOutputSize = resizeFixedAspectRatio(cvInputData, scaleInputToOutput, outputResolution);
             Array<float> outputData;
             if (mGenerateOutput)
@@ -43,7 +43,9 @@ namespace op
         }
     }
 
-	void  CvMatToOpOutput::format(const cv::cuda::GpuMat& cvInputData, double& scaleInputToOutput, GpuArray<float>& outputData) const {
+	void  CvMatToOpOutput::format(const cv::cuda::GpuMat& cvInputData, float& scaleInputToOutput, GpuArray<float>& outputData) const {
+
+		
 		try
 		{
 			// Security checks
@@ -51,8 +53,8 @@ namespace op
 				error("Wrong input element (empty cvInputData).", __LINE__, __FUNCTION__, __FILE__);
 
 			// outputData - Reescale keeping aspect ratio and transform to float the output image
-			const cv::Size outputResolution{ mOutputSize3D[2], mOutputSize3D[1] };
-			scaleInputToOutput = resizeGetScaleFactor(cvInputData.size(), outputResolution);
+			const Point<int> outputResolution{ mOutputSize3D[2], mOutputSize3D[1] };
+			scaleInputToOutput = resizeGetScaleFactor(Point<int>{cvInputData.cols, cvInputData.rows}, outputResolution);
 			resizeFixedAspectRatioGpu(cvInputData, *scaledImage, scaleInputToOutput, outputResolution);
 			if ( outputData.empty() ) {
 				outputData.reset(mOutputSize3D);

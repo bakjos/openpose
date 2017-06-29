@@ -1,14 +1,10 @@
 #include <chrono>
 #include <thread>
 #include <opencv2/highgui/highgui.hpp> // cv::waitKey
-#include "openpose/filestream/fileStream.hpp"
-#include "openpose/utilities/check.hpp"
-#include "openpose/utilities/errorAndLog.hpp"
-#include "openpose/gui/gui.hpp"
-
-#ifdef _WIN32
-#include <locale>
-#endif
+#include <openpose/filestream/fileStream.hpp>
+#include <openpose/utilities/check.hpp>
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/gui/gui.hpp>
 
 namespace op
 {
@@ -21,7 +17,7 @@ namespace op
             if (!helpCvMat.empty())
             {
                 const auto fullScreen = false;
-                FrameDisplayer frameDisplayer{helpCvMat.size(), "OpenPose - GUI Help", fullScreen};
+                FrameDisplayer frameDisplayer{Point<int>{helpCvMat.cols, helpCvMat.rows}, "OpenPose - GUI Help", fullScreen};
                 frameDisplayer.displayFrame(helpCvMat, 33);
             }
         }
@@ -40,13 +36,8 @@ namespace op
             const int key = cv::waitKey(1);
             if (key != -1)
             {
-#ifdef _WIN32
                 // Some OpenCV versions has a problem and key must be casted to char
-				std::locale loc;
-                const auto castedKey = std::tolower((char)key, loc);
-#else
-				const auto castedKey = std::tolower((char)key);
-#endif
+                const auto castedKey = (char)std::tolower((char)key);
                 // ------------------------- General Commands ------------------------- //
                 // Exit program
                 if (castedKey==27)
@@ -127,7 +118,7 @@ namespace op
                     const auto newElementToRender = key2part.find(castedKey);
                     if (newElementToRender != std::string::npos)
                         for (auto& poseRenderer : mPoseRenderers)
-                            poseRenderer->setElementToRender(newElementToRender);
+                            poseRenderer->setElementToRender((int)newElementToRender);
                 }
             }
         }
@@ -158,7 +149,7 @@ namespace op
         }
     }
 
-    Gui::Gui(const bool fullScreen, const cv::Size& outputSize, const std::shared_ptr<std::atomic<bool>>& isRunningSharedPtr, 
+    Gui::Gui(const bool fullScreen, const Point<int>& outputSize, const std::shared_ptr<std::atomic<bool>>& isRunningSharedPtr, 
              const std::shared_ptr<std::pair<std::atomic<bool>, std::atomic<int>>>& videoSeekSharedPtr,
              const std::vector<std::shared_ptr<PoseExtractor>>& poseExtractors, const std::vector<std::shared_ptr<PoseRenderer>>& poseRenderers) :
         mFrameDisplayer{outputSize, "OpenPose - GUI", fullScreen},
@@ -183,7 +174,7 @@ namespace op
 
             // Display
             if (returnedIsValidFrame)
-                mFrameDisplayer.displayFrame(cvOutputData,  -1);
+                mFrameDisplayer.displayFrame(cvOutputData, -1);
 
             // Handle user input
             handleUserInput(mFrameDisplayer, mPoseExtractors, mPoseRenderers, spIsRunning, spVideoSeek);

@@ -1,5 +1,5 @@
-#ifndef OPENPOSE__THREAD__W_ID_GENERATOR_HPP
-#define OPENPOSE__THREAD__W_ID_GENERATOR_HPP
+#ifndef OPENPOSE_THREAD_W_ID_GENERATOR_HPP
+#define OPENPOSE_THREAD_W_ID_GENERATOR_HPP
 
 #include <queue> // std::priority_queue
 #include "worker.hpp"
@@ -28,9 +28,9 @@ namespace op
 
 
 // Implementation
-#include "../utilities/errorAndLog.hpp"
-#include "../utilities/macros.hpp"
-#include "../utilities/pointerContainer.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/macros.hpp>
+#include <openpose/utilities/pointerContainer.hpp>
 namespace op
 {
     template<typename TDatums>
@@ -69,4 +69,4 @@ namespace op
     COMPILE_TEMPLATE_DATUM(WIdGenerator);
 }
 
-#endif // OPENPOSE__THREAD__W_ID_GENERATOR_HPP
+#endif // OPENPOSE_THREAD_W_ID_GENERATOR_HPP

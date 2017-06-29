@@ -1,5 +1,5 @@
-#ifndef OPENPOSE__SUB_THREAD__THREAD_NO_QUEUE_HPP
-#define OPENPOSE__SUB_THREAD__THREAD_NO_QUEUE_HPP
+#ifndef OPENPOSE_THREAD_THREAD_NO_QUEUE_HPP
+#define OPENPOSE_THREAD_THREAD_NO_QUEUE_HPP
 
 #include <vector>
 #include "thread.hpp"
@@ -24,8 +24,8 @@ namespace op
 
 
 // Implementation
-#include "../utilities/errorAndLog.hpp"
-#include "../utilities/macros.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/macros.hpp>
 namespace op
 {
     template<typename TDatums, typename TWorker>
@@ -51,4 +51,4 @@ namespace op
     COMPILE_TEMPLATE_DATUM(SubThreadNoQueue);
 }
 
-#endif // OPENPOSE__SUB_THREAD__THREAD_NO_QUEUE_HPP
+#endif // OPENPOSE_THREAD_THREAD_NO_QUEUE_HPP

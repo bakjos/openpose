@@ -1,8 +1,8 @@
-#ifndef OPENPOSE__POSE__W_POSE_RENDERER_HPP
-#define OPENPOSE__POSE__W_POSE_RENDERER_HPP
+#ifndef OPENPOSE_POSE_W_POSE_RENDERER_HPP
+#define OPENPOSE_POSE_W_POSE_RENDERER_HPP
 
 #include <memory> // std::shared_ptr
-#include "../thread/worker.hpp"
+#include <openpose/thread/worker.hpp>
 #include "poseRenderer.hpp"
 
 namespace op
@@ -29,10 +29,10 @@ namespace op
 
 
 // Implementation
-#include "../utilities/errorAndLog.hpp"
-#include "../utilities/macros.hpp"
-#include "../utilities/pointerContainer.hpp"
-#include "../utilities/profiler.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/macros.hpp>
+#include <openpose/utilities/pointerContainer.hpp>
+#include <openpose/utilities/profiler.hpp>
 namespace op
 {
     template<typename TDatums>
@@ -59,9 +59,9 @@ namespace op
                 // Profiling speed
                 const auto profilerKey = Profiler::timerInit(__LINE__, __FUNCTION__, __FILE__);
                 // Render people pose
-				for (auto& tDatum : *tDatums) 
-					tDatum.elementRendered = spPoseRenderer->renderPose(tDatum.outputData, tDatum.poseKeyPoints, tDatum.scaleNetToOutput);
-
+                for (auto& tDatum : *tDatums)
+                    tDatum.elementRendered = spPoseRenderer->renderPose(tDatum.outputData, tDatum.poseKeypoints, (float)tDatum.scaleNetToOutput);
+				
                 // Profiling speed
                 Profiler::timerEnd(profilerKey);
                 Profiler::printAveragedTimeMsOnIterationX(profilerKey, __LINE__, __FUNCTION__, __FILE__, Profiler::DEFAULT_X);
@@ -80,4 +80,4 @@ namespace op
     COMPILE_TEMPLATE_DATUM(WPoseRenderer);
 }
 
-#endif // OPENPOSE__POSE__W_POSE_RENDERER_HPP
+#endif // OPENPOSE_POSE_W_POSE_RENDERER_HPP

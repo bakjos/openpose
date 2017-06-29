@@ -1,29 +1,35 @@
-#ifndef OPENPOSE__POSE__POSE_EXTRACTOR_HPP
-#define OPENPOSE__POSE__POSE_EXTRACTOR_HPP
+#ifndef OPENPOSE_POSE_POSE_EXTRACTOR_HPP
+#define OPENPOSE_POSE_POSE_EXTRACTOR_HPP
 
 #include <array>
 #include <atomic>
 #include <thread>
 #include <opencv2/core/core.hpp>
-#include "../core/array.hpp"
-#include "../core/gpuArray.hpp"
-#include "../utilities/macros.hpp"
+#include <openpose/core/array.hpp>
+#include <openpose/core/point.hpp>
+#include <openpose/core/enumClasses.hpp>
+#include <openpose/utilities/macros.hpp>
+#include <opencv2/core/core.hpp>
+#include <openpose/core/gpuArray.hpp>
 #include "poseParameters.hpp"
-#include "../core/enumClasses.hpp"
 
 namespace op
 {
     class OPENPOSE_API PoseExtractor
     {
     public:
-        PoseExtractor(const cv::Size& netOutputSize, const cv::Size& outputSize, const PoseModel poseModel, const std::vector<HeatMapType>& heatMapTypes = {},
-                      const ScaleMode heatMapScaleMode = ScaleMode::ZeroToOne);
+        PoseExtractor(const Point<int>& netOutputSize, const Point<int>& outputSize, const PoseModel poseModel, const std::vector<HeatMapType>& heatMapTypes = {},
+                      const ScaleMode heatMapScale = ScaleMode::ZeroToOne);
+
+        virtual ~PoseExtractor();
 
         void initializationOnThread();
 
-        virtual void forwardPass(const Array<float>& inputNetData, const cv::Size& inputDataSize) = 0;
+        
+        virtual void forwardPass(const Array<float>& inputNetData, const Point<int>& inputDataSize, const std::vector<float>& scaleRatios = {1.f}) = 0;
+        
 		
-    	virtual void forwardPass(const GpuArray<float>& inputNetData, const cv::Size& inputDataSize) = 0;
+    	virtual void forwardPass(const GpuArray<float>& inputNetData, const Point<int>& inputDataSize, const std::vector<float>& scaleRatios = { 1.f }) = 0;
 
         virtual const float* getHeatMapCpuConstPtr() const = 0;
 
@@ -33,9 +39,9 @@ namespace op
 
         virtual const float* getPoseGpuConstPtr() const = 0;
 
-        Array<float> getPoseKeyPoints() const;
+        Array<float> getPoseKeypoints() const;
 
-        double getScaleNetToOutput() const;
+        float getScaleNetToOutput() const;
 
         double get(const PoseProperty property) const;
 
@@ -45,10 +51,10 @@ namespace op
 
     protected:
         const PoseModel mPoseModel;
-        const cv::Size mNetOutputSize;
-        const cv::Size mOutputSize;
-        Array<float> mPoseKeyPoints;
-        double mScaleNetToOutput;
+        const Point<int> mNetOutputSize;
+        const Point<int> mOutputSize;
+        Array<float> mPoseKeypoints;
+        float mScaleNetToOutput;
 
         void checkThread() const;
 
@@ -64,4 +70,4 @@ namespace op
     };
 }
 
-#endif // OPENPOSE__POSE__POSE_EXTRACTOR_HPP
+#endif // OPENPOSE_POSE_POSE_EXTRACTOR_HPP

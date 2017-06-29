@@ -1,10 +1,11 @@
-#include "openpose/utilities/errorAndLog.hpp"
-#include "openpose/utilities/fastMath.hpp"
-#include "openpose/utilities/openCv.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/fastMath.hpp>
+#include <openpose/utilities/openCv.hpp>
 
 namespace op
 {
-    void putTextOnCvMat(cv::Mat& cvMat, const std::string& textToDisplay, const cv::Point& position, const cv::Scalar& color, const bool normalizeWidth)
+	
+    void putTextOnCvMat(cv::Mat& cvMat, const std::string& textToDisplay, const Point<int>& position, const cv::Scalar& color, const bool normalizeWidth)
     {
         try
         {
@@ -15,8 +16,8 @@ namespace op
             const auto shadowOffset = 2;
             int baseline = 0;
             const auto textSize = cv::getTextSize(textToDisplay, font, fontScale, fontThickness, &baseline);
-            const cv::Point finalPosition{position.x - (normalizeWidth ? textSize.width : 0), position.y + textSize.height/2};
-            cv::putText(cvMat, textToDisplay, cv::Point{finalPosition.x+shadowOffset, finalPosition.y+shadowOffset}, font, fontScale, cv::Scalar{0,0,0}, fontThickness);
+            const cv::Size finalPosition{position.x - (normalizeWidth ? textSize.width : 0), position.y + textSize.height/2};
+            cv::putText(cvMat, textToDisplay, cv::Size{finalPosition.width + shadowOffset, finalPosition.height + shadowOffset}, font, fontScale, cv::Scalar{0,0,0}, fontThickness);
             cv::putText(cvMat, textToDisplay, finalPosition, font, fontScale, color, fontThickness);
         }
         catch (const std::exception& e)
@@ -25,28 +26,26 @@ namespace op
         }
     }
 
-    void floatPtrToUCharCvMat(cv::Mat& cvMat, const float* const floatImage, const cv::Size& resolutionSize, const int resolutionChannels)
+    void floatPtrToUCharCvMat(cv::Mat& cvMat, const float* const floatImage, const Point<int>& resolutionSize, const int resolutionChannels, int cvMatOffsetY)
     {
         try
         {
             // float* (deep net format): C x H x W
             // cv::Mat (OpenCV format): H x W x C
-            if (cvMat.rows != resolutionSize.height || cvMat.cols != resolutionSize.width || cvMat.type() != CV_8UC3)
-                cvMat = cv::Mat(resolutionSize.height, resolutionSize.width, CV_8UC3);
-            const auto offsetBetweenChannels = resolutionSize.width * resolutionSize.height;
+            if (cvMat.rows != resolutionSize.y || cvMat.cols != resolutionSize.x || cvMat.type() != CV_8UC3)
+                cvMat = cv::Mat(resolutionSize.y, resolutionSize.x, CV_8UC3);
+            const auto offsetBetweenChannels = resolutionSize.x * resolutionSize.y;
             for (auto c = 0; c < resolutionChannels; c++)
             {
                 const auto offsetChannelC = c*offsetBetweenChannels;
-                for (auto y = 0; y < resolutionSize.height; y++)
+                for (auto y = 0; y < resolutionSize.y; y++)
                 {
-                    const auto cvMatOffsetY = y*resolutionSize.width;
-                    const auto floatImageOffsetY = offsetChannelC + y*resolutionSize.width;
-                    for (auto x = 0; x < resolutionSize.width; x++)
-                    {
-                        const auto value = uchar(   fastTruncate(intRound(floatImage[floatImageOffsetY + x]), 0, 255)   );
-                        //cvMat.at<uchar>(resolutionChannels*(cvMatOffsetY + x) + c) = value;
-						cvMat.data[resolutionChannels*(cvMatOffsetY + x) + c] = value;
-                    }
+                    const auto floatImageOffsetY = offsetChannelC + y*resolutionSize.x;
+					for (auto x = 0; x < resolutionSize.x; x++)
+					{
+						const auto value = uchar(fastTruncate(intRound(floatImage[floatImageOffsetY + x]), 0, 255));
+						*(cvMat.ptr<uchar>(y) + (cvMatOffsetY + x)*resolutionChannels + c) = value;
+					}
                 }
             }
         }
@@ -56,9 +55,9 @@ namespace op
         }
     }
 
-	void floatPtrToUCharGpuMat(cv::cuda::GpuMat& cvMat, const float* const floatImage, const cv::Size& resolutionSize, const int resolutionChannels) {
-		if(cvMat.rows != resolutionSize.height || cvMat.cols != resolutionSize.width || cvMat.type() != CV_8UC3) {
-			cvMat = cv::cuda::GpuMat(resolutionSize.height, resolutionSize.width, CV_8UC3);
+	void floatPtrToUCharGpuMat(cv::cuda::GpuMat& cvMat, const float* const floatImage, const Point<int>& resolutionSize, const int resolutionChannels) {
+		if(cvMat.rows != resolutionSize.y || cvMat.cols != resolutionSize.x || cvMat.type() != CV_8UC3) {
+			cvMat = cv::cuda::GpuMat(resolutionSize.y, resolutionSize.x, CV_8UC3);
 		}
 
 		floatPtrToGpuMat(cvMat.data, floatImage , cvMat.channels(), resolutionSize, cvMat.step);
@@ -150,18 +149,19 @@ namespace op
         }
     }
 
+       
 	void uCharGpuMatToFloatPtr(float* floatImage, const cv::cuda::GpuMat& cvImage, const bool normalize, const unsigned long offset) {
 		
-		gpuMatToFloatPtr(floatImage, cvImage.data, cvImage.channels(), cv::Size(cvImage.cols, cvImage.rows), cvImage.step, normalize, offset);
+		gpuMatToFloatPtr(floatImage, cvImage.data, cvImage.channels(),Point<int>(cvImage.cols, cvImage.rows), cvImage.step, normalize, offset);
     }
 
 
-    double resizeGetScaleFactor(const cv::Size& initialSize, const cv::Size& targetSize)
+	double resizeGetScaleFactor(const Point<int>& initialSize, const Point<int>& targetSize)
     {
         try
         {
-            const auto ratioWidth = targetSize.width / (double)initialSize.width;
-            const auto ratioHeight = targetSize.height / (double)initialSize.height;
+            const auto ratioWidth = targetSize.x / (double)initialSize.x;
+            const auto ratioHeight = targetSize.y / (double)initialSize.y;
             return fastMin(ratioWidth, ratioHeight);
         }
         catch (const std::exception& e)
@@ -171,16 +171,17 @@ namespace op
         }
     }
 
-    cv::Mat resizeFixedAspectRatio(const cv::Mat& cvMat, const double scaleFactor, const cv::Size& targetSize, const int borderMode, const cv::Scalar& borderValue)
+    cv::Mat resizeFixedAspectRatio(const cv::Mat& cvMat, const double scaleFactor, const Point<int>& targetSize, const int borderMode, const cv::Scalar& borderValue)
     {
         try
         {
+            const cv::Size cvTargetSize{targetSize.x, targetSize.y};
             cv::Mat resultingCvMat;
             cv::Mat M = cv::Mat::eye(2,3,CV_64F);
             M.at<double>(0,0) = scaleFactor;
             M.at<double>(1,1) = scaleFactor;
-            if (scaleFactor != 1. || targetSize != cvMat.size())
-                cv::warpAffine(cvMat, resultingCvMat, M, targetSize, (scaleFactor < 1. ? cv::INTER_AREA : cv::INTER_CUBIC), borderMode, borderValue);
+            if (scaleFactor != 1. || cvTargetSize != cvMat.size())
+                cv::warpAffine(cvMat, resultingCvMat, M, cvTargetSize, (scaleFactor < 1. ? cv::INTER_AREA : cv::INTER_CUBIC), borderMode, borderValue);
             else 
                 resultingCvMat = cvMat.clone();
             return resultingCvMat;
@@ -192,14 +193,15 @@ namespace op
         }
     }
 
-	void resizeFixedAspectRatioGpu(const cv::cuda::GpuMat& cvMat, cv::cuda::GpuMat& resultingCvMat, const double scaleFactor, const cv::Size& targetSize, const int borderMode, const cv::Scalar& borderValue) {
+	void resizeFixedAspectRatioGpu(const cv::cuda::GpuMat& cvMat, cv::cuda::GpuMat& resultingCvMat, const double scaleFactor, const Point<int>& targetSize, const int borderMode, const cv::Scalar& borderValue) {
 		try
 		{
+			const cv::Size cvTargetSize{ targetSize.x, targetSize.y };
 			cv::Mat M = cv::Mat::eye(2, 3, CV_64F);
 			M.at<double>(0, 0) = scaleFactor;
 			M.at<double>(1, 1) = scaleFactor;
-			if (scaleFactor != 1. || targetSize != cvMat.size())
-				cv::cuda::warpAffine(cvMat, resultingCvMat, M, targetSize, (scaleFactor < 1. ? cv::INTER_LINEAR : cv::INTER_CUBIC), borderMode, borderValue);
+			if (scaleFactor != 1. || cvTargetSize != cvMat.size())
+				cv::cuda::warpAffine(cvMat, resultingCvMat, M, cvTargetSize, (scaleFactor < 1. ? cv::INTER_LINEAR : cv::INTER_CUBIC), borderMode, borderValue);
 			else {
 				cvMat.copyTo(resultingCvMat);
 			}

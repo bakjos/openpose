@@ -1,11 +1,11 @@
-#ifndef OPENPOSE__THREAD__THREAD_HPP
-#define OPENPOSE__THREAD__THREAD_HPP
+#ifndef OPENPOSE_THREAD_THREAD_HPP
+#define OPENPOSE_THREAD_THREAD_HPP
 
 #include <atomic>
 #include <memory>   // std::shared_ptr
 #include <thread>
 #include <vector>
-#include "../utilities/macros.hpp"
+#include <openpose/utilities/macros.hpp>
 #include "subThread.hpp"
 #include "worker.hpp"
 
@@ -63,7 +63,7 @@ namespace op
 
 
 // Implementation
-#include "../utilities/errorAndLog.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
 namespace op
 {
     template<typename TDatums, typename TWorker>
@@ -237,4 +237,4 @@ namespace op
     COMPILE_TEMPLATE_DATUM(Thread);
 }
 
-#endif // OPENPOSE__THREAD__THREAD_HPP
+#endif // OPENPOSE_THREAD_THREAD_HPP

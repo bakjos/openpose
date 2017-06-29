@@ -1,9 +1,8 @@
-#ifndef OPENPOSE__CORE__W_OP_OUTPUT_TO_CV_MAT_HPP
-#define OPENPOSE__CORE__W_OP_OUTPUT_TO_CV_MAT_HPP
+#ifndef OPENPOSE_CORE_W_OP_OUTPUT_TO_CV_MAT_HPP
+#define OPENPOSE_CORE_W_OP_OUTPUT_TO_CV_MAT_HPP
 
 #include <memory> // std::shared_ptr
-#include <opencv2/core/core.hpp>
-#include "../thread/worker.hpp"
+#include <openpose/thread/worker.hpp>
 #include "opOutputToCvMat.hpp"
 
 namespace op
@@ -33,10 +32,10 @@ namespace op
 
 // Implementation
 #include <vector>
-#include "../utilities/errorAndLog.hpp"
-#include "../utilities/macros.hpp"
-#include "../utilities/pointerContainer.hpp"
-#include "../utilities/profiler.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/macros.hpp>
+#include <openpose/utilities/pointerContainer.hpp>
+#include <openpose/utilities/profiler.hpp>
 namespace op
 {
     template<typename TDatums>
@@ -84,4 +83,4 @@ namespace op
     COMPILE_TEMPLATE_DATUM(WOpOutputToCvMat);
 }
 
-#endif // OPENPOSE__CORE__W_OP_OUTPUT_TO_CV_MAT_HPP
+#endif // OPENPOSE_CORE_W_OP_OUTPUT_TO_CV_MAT_HPP

@@ -34,7 +34,7 @@ LIB_BUILD_DIR := $(BUILD_DIR)/lib
 STATIC_NAME := $(LIB_BUILD_DIR)/lib$(LIBRARY_NAME).a
 DYNAMIC_VERSION_MAJOR 		:= 1
 DYNAMIC_VERSION_MINOR 		:= 0
-DYNAMIC_VERSION_REVISION 	:= 0-rc2
+DYNAMIC_VERSION_REVISION 	:= 0-rc3
 DYNAMIC_NAME_SHORT := lib$(LIBRARY_NAME).so
 #DYNAMIC_SONAME_SHORT := $(DYNAMIC_NAME_SHORT).$(DYNAMIC_VERSION_MAJOR)
 DYNAMIC_VERSIONED_NAME_SHORT := $(DYNAMIC_NAME_SHORT).$(DYNAMIC_VERSION_MAJOR).$(DYNAMIC_VERSION_MINOR).$(DYNAMIC_VERSION_REVISION)
@@ -64,6 +64,10 @@ else ifeq ($(DEEP_NET), torch)
 # Caffe
 else
 	COMMON_FLAGS += -DUSE_CAFFE
+	LIBRARIES += caffe
+	LDFLAGS += -Wl,-rpath=$(CAFFE_DIR)/lib
+	INCLUDE_DIRS += $(CAFFE_DIR)/include
+	LIBRARY_DIRS += $(CAFFE_DIR)/lib
 endif
 
 ##############################
@@ -138,10 +142,11 @@ INCLUDE_DIRS += $(BUILD_INCLUDE_DIR) ./src ./include
 ifneq ($(CPU_ONLY), 1)
 	INCLUDE_DIRS += $(CUDA_INCLUDE_DIR)
 	LIBRARY_DIRS += $(CUDA_LIB_DIR)
-	LIBRARIES := cudart cublas curand
+	LIBRARIES += cudart cublas curand
 endif
 
-LIBRARIES += glog gflags boost_system boost_filesystem m hdf5_hl hdf5 caffe
+# LIBRARIES += glog gflags boost_system boost_filesystem m hdf5_hl hdf5 caffe
+LIBRARIES += glog gflags boost_system boost_filesystem m hdf5_hl hdf5
 
 # handle IO dependencies
 USE_LEVELDB ?= 1
@@ -377,8 +382,10 @@ ifeq ($(USE_PKG_CONFIG), 1)
 else
 	PKG_CONFIG :=
 endif
+# LDFLAGS += $(foreach librarydir,$(LIBRARY_DIRS),-L$(librarydir)) $(PKG_CONFIG) \
+# 		$(foreach library,$(LIBRARIES),-l$(library)) -Wl,-rpath=$(CAFFE_DIR)/lib
 LDFLAGS += $(foreach librarydir,$(LIBRARY_DIRS),-L$(librarydir)) $(PKG_CONFIG) \
-		$(foreach library,$(LIBRARIES),-l$(library)) -Wl,-rpath=$(CAFFE_DIR)/lib
+		$(foreach library,$(LIBRARIES),-l$(library))
 
 ##############################
 # Define build targets

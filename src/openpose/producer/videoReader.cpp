@@ -1,6 +1,6 @@
-#include "openpose/utilities/errorAndLog.hpp"
-#include "openpose/utilities/fileSystem.hpp"
-#include "openpose/producer/videoReader.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/fileSystem.hpp>
+#include <openpose/producer/videoReader.hpp>
 
 namespace op
 {
@@ -27,7 +27,7 @@ namespace op
     {
         try
         {
-        	return VideoCaptureReader::getRawFrame();
+            return VideoCaptureReader::getRawFrame();
         }
         catch (const std::exception& e)
         {

@@ -1,16 +1,17 @@
-#include "openpose/utilities/cuda.hpp"
-#include "openpose/utilities/errorAndLog.hpp"
-#include "openpose/pose/bodyPartConnectorBase.hpp"
+#include <openpose/utilities/cuda.hpp>
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/pose/bodyPartConnectorBase.hpp>
 
 namespace op
 {
     template <typename T>
-	OPENPOSE_API void connectBodyPartsGpu(Array<T>& poseKeyPoints, T* posePtr, const T* const heatMapPtr, const T* const peaksPtr, const PoseModel poseModel, const cv::Size& heatMapSize,
+    
+	OPENPOSE_API void connectBodyPartsGpu(Array<T>& poseKeypoints, T* posePtr, const T* const heatMapPtr, const T* const peaksPtr, const PoseModel poseModel, const Point<int>& heatMapSize,
                              const int maxPeaks, const int interMinAboveThreshold, const T interThreshold, const int minSubsetCnt, const T minSubsetScore, const T scaleFactor)
     {
         try
         {
-            UNUSED(poseKeyPoints);
+            UNUSED(poseKeypoints);
             UNUSED(posePtr);
             UNUSED(heatMapPtr);
             UNUSED(peaksPtr);
@@ -31,10 +32,13 @@ namespace op
         }
     }
 
-	OPENPOSE_API template void connectBodyPartsGpu(Array<float>& poseKeyPoints, float* posePtr, const float* const heatMapPtr, const float* const peaksPtr, const PoseModel poseModel,
-                                      const cv::Size& heatMapSize, const int maxPeaks, const int interMinAboveThreshold, const float interThreshold, const int minSubsetCnt,
-                                      const float minSubsetScore, const float scaleFactor);
-	OPENPOSE_API template void connectBodyPartsGpu(Array<double>& poseKeyPoints, double* posePtr, const double* const heatMapPtr, const double* const peaksPtr, const PoseModel poseModel,
-                                      const cv::Size& heatMapSize, const int maxPeaks, const int interMinAboveThreshold, const double interThreshold, const int minSubsetCnt,
-                                      const double minSubsetScore, const double scaleFactor);
+   
+	OPENPOSE_API template void connectBodyPartsGpu(Array<float>& poseKeypoints, float* posePtr, const float* const heatMapPtr, const float* const peaksPtr, const PoseModel poseModel,
+		const Point<int>& heatMapSize, const int maxPeaks, const int interMinAboveThreshold, const float interThreshold, const int minSubsetCnt,
+		const float minSubsetScore, const float scaleFactor);
+	OPENPOSE_API template void connectBodyPartsGpu(Array<double>& poseKeypoints, double* posePtr, const double* const heatMapPtr, const double* const peaksPtr, const PoseModel poseModel,
+		const Point<int>& heatMapSize, const int maxPeaks, const int interMinAboveThreshold, const double interThreshold, const int minSubsetCnt,
+		const double minSubsetScore, const double scaleFactor);
+	
+	
 }

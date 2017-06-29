@@ -1,7 +1,16 @@
-#ifndef OPENPOSE__POSE__POSE_RENDERER_HPP
-#define OPENPOSE__POSE__POSE_RENDERER_HPP
+#ifndef OPENPOSE_POSE_POSE_RENDERER_HPP
+#define OPENPOSE_POSE_POSE_RENDERER_HPP
 
 #include <memory> // std::shared_ptr
+#include <opencv2/core/core.hpp>
+#include "../core/array.hpp"
+#include "../core/renderer.hpp"
+#include "../utilities/macros.hpp"
+#include <openpose/core/array.hpp>
+#include <openpose/core/enumClasses.hpp>
+#include <openpose/core/point.hpp>
+#include <openpose/core/renderer.hpp>
+#include <openpose/utilities/macros.hpp>
 #include <opencv2/core/core.hpp>
 #include "../core/array.hpp"
 #include "../core/gpuArray.hpp"
@@ -15,25 +24,14 @@ namespace op
     class OPENPOSE_API PoseRenderer : public Renderer
     {
     public:
-        explicit PoseRenderer(const cv::Size& heatMapsSize, const cv::Size& outputSize, const PoseModel poseModel, const std::shared_ptr<PoseExtractor>& poseExtractor,
-                              const bool blendOriginalFrame = true, const float alphaPose = POSE_DEFAULT_ALPHA_POSE,
-                              const float alphaHeatMap = POSE_DEFAULT_ALPHA_HEATMAP, const int elementToRender = 0);
+        explicit PoseRenderer(const Point<int>& heatMapsSize, const Point<int>& outputSize, const PoseModel poseModel,
+                              const std::shared_ptr<PoseExtractor>& poseExtractor, const bool blendOriginalFrame = true,
+                              const float alphaKeypoint = POSE_DEFAULT_ALPHA_KEYPOINT, const float alphaHeatMap = POSE_DEFAULT_ALPHA_HEAT_MAP,
+                              const unsigned int elementToRender = 0u, const RenderMode renderMode = RenderMode::Cpu);
 
         ~PoseRenderer();
 
         void initializationOnThread();
-
-        void increaseElementToRender(const int increment);
-
-        void setElementToRender(const int elementToRender);
-
-        float getAlphaPose() const;
-
-        void setAlphaPose(const float alphaPose);
-
-        float getAlphaHeatMap() const;
-
-        void setAlphaHeatMap(const float alphaHeatMap);
 
         bool getBlendOriginalFrame() const;
 
@@ -43,30 +41,33 @@ namespace op
 
         void setShowGooglyEyes(const bool showGooglyEyes);
 
-        std::pair<int, std::string> renderPose(Array<float>& outputData, const Array<float>& poseKeyPoints, const double scaleNetToOutput = -1.);
+        std::pair<int, std::string> renderPose(Array<float>& outputData, const Array<float>& poseKeypoints, const float scaleNetToOutput = -1.f);
 
 		std::pair<int, std::string> renderPose(GpuArray<float>& outputData, const Array<float>& poseKeyPoints, const double scaleNetToOutput = -1.);
 
     private:
+        
+        const Point<int> mHeatMapsSize;
+        const Point<int> mOutputSize;
 
-		std::string renderPoseInternal(const Array<float>& poseKeyPoints, int elementRendered, int numberPeople, const double scaleNetToOutput);
+		std::string  renderPoseInternal(const Array<float>& poseKeyPoints, int elementRendered, int numberPeople, const double scaleNetToOutput);
 
-        const cv::Size mHeatMapsSize;
-        const cv::Size mOutputSize;
+        
         const PoseModel mPoseModel;
-        const std::map<unsigned char, std::string> mPartIndexToName;
-        const int mNumberElementsToRender;
+        const std::map<unsigned int, std::string> mPartIndexToName;
         const std::shared_ptr<PoseExtractor> spPoseExtractor;
-        float mAlphaPose;
-        float mAlphaHeatMap;
+        const RenderMode mRenderMode;
         std::atomic<bool> mBlendOriginalFrame;
         std::atomic<bool> mShowGooglyEyes;
-        std::atomic<int> mElementToRender;
         // Init with thread
-        float* pGpuPose;        // GPU aux memory
+        float* pGpuPose; // GPU aux memory
+
+        std::pair<int, std::string> renderPoseCpu(Array<float>& outputData, const Array<float>& poseKeypoints, const float scaleNetToOutput = -1.f);
+
+        std::pair<int, std::string> renderPoseGpu(Array<float>& outputData, const Array<float>& poseKeypoints, const float scaleNetToOutput = -1.f);
 
         DELETE_COPY(PoseRenderer);
     };
 }
 
-#endif // OPENPOSE__POSE__POSE_RENDERER_HPP
+#endif // OPENPOSE_POSE_POSE_RENDERER_HPP

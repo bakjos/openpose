@@ -1,9 +1,8 @@
-#ifndef OPENPOSE__CORE__W_CV_MAT_TO_OP_INPUT_HPP
-#define OPENPOSE__CORE__W_CV_MAT_TO_OP_INPUT_HPP
+#ifndef OPENPOSE_CORE_W_CV_MAT_TO_OP_INPUT_HPP
+#define OPENPOSE_CORE_W_CV_MAT_TO_OP_INPUT_HPP
 
 #include <memory> // std::shared_ptr
-#include <opencv2/core/core.hpp>
-#include "../thread/worker.hpp"
+#include <openpose/thread/worker.hpp>
 #include "cvMatToOpInput.hpp"
 
 namespace op
@@ -31,11 +30,11 @@ namespace op
 
 
 // Implementation
-#include "../utilities/errorAndLog.hpp"
-#include "../utilities/macros.hpp"
-#include "../utilities/openCv.hpp"
-#include "../utilities/pointerContainer.hpp"
-#include "../utilities/profiler.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/macros.hpp>
+#include <openpose/utilities/openCv.hpp>
+#include <openpose/utilities/pointerContainer.hpp>
+#include <openpose/utilities/profiler.hpp>
 namespace op
 {
     template<typename TDatums>
@@ -61,8 +60,10 @@ namespace op
                 // Profiling speed
                 const auto profilerKey = Profiler::timerInit(__LINE__, __FUNCTION__, __FILE__);
                 // cv::Mat -> float*
+                /*for (auto& tDatum : *tDatums)
+                    std::tie(tDatum.inputNetData, tDatum.scaleRatios) = spCvMatToOpInput->format(tDatum.cvInputData);*/
 				for (auto& tDatum : *tDatums) {
-					spCvMatToOpInput->format(inputNetData, tDatum.cvInputData);
+					tDatum.scaleRatios = spCvMatToOpInput->format(inputNetData, tDatum.cvInputData);
 					tDatum.inputNetData = inputNetData;
 				}
 					
@@ -85,4 +86,4 @@ namespace op
     COMPILE_TEMPLATE_DATUM(WCvMatToOpInput);
 }
 
-#endif // OPENPOSE__CORE__W_CV_MAT_TO_OP_INPUT_HPP
+#endif // OPENPOSE_CORE_W_CV_MAT_TO_OP_INPUT_HPP

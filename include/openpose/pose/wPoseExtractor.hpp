@@ -1,8 +1,8 @@
-#ifndef OPENPOSE__POSE__W_POSE_EXTRACTOR_HPP
-#define OPENPOSE__POSE__W_POSE_EXTRACTOR_HPP
+#ifndef OPENPOSE_POSE_W_POSE_EXTRACTOR_HPP
+#define OPENPOSE_POSE_W_POSE_EXTRACTOR_HPP
 
 #include <memory> // std::shared_ptr
-#include "../thread/worker.hpp"
+#include <openpose/thread/worker.hpp>
 #include "poseExtractor.hpp"
 
 namespace op
@@ -29,10 +29,10 @@ namespace op
 
 
 // Implementation
-#include "../utilities/errorAndLog.hpp"
-#include "../utilities/macros.hpp"
-#include "../utilities/pointerContainer.hpp"
-#include "../utilities/profiler.hpp"
+#include <openpose/utilities/errorAndLog.hpp>
+#include <openpose/utilities/macros.hpp>
+#include <openpose/utilities/pointerContainer.hpp>
+#include <openpose/utilities/profiler.hpp>
 namespace op
 {
     template<typename TDatums>
@@ -61,9 +61,9 @@ namespace op
                 // Extract people pose
                 for (auto& tDatum : *tDatums)
                 {
-                    spPoseExtractor->forwardPass(tDatum.inputNetData, tDatum.cvInputData.size());
+                    spPoseExtractor->forwardPass(tDatum.inputNetData, Point<int>{tDatum.cvInputData.cols, tDatum.cvInputData.rows}, tDatum.scaleRatios);
                     tDatum.poseHeatMaps = spPoseExtractor->getHeatMaps();
-                    tDatum.poseKeyPoints = spPoseExtractor->getPoseKeyPoints();
+                    tDatum.poseKeypoints = spPoseExtractor->getPoseKeypoints();
                     tDatum.scaleNetToOutput = spPoseExtractor->getScaleNetToOutput();
                 }
                 // Profiling speed
@@ -84,4 +84,4 @@ namespace op
     COMPILE_TEMPLATE_DATUM(WPoseExtractor);
 }
 
-#endif // OPENPOSE__POSE__W_POSE_EXTRACTOR_HPP
+#endif // OPENPOSE_POSE_W_POSE_EXTRACTOR_HPP

@@ -1,5 +1,5 @@
-#ifndef OPENPOSE__THREAD__WORKER_CONSUMER_HPP
-#define OPENPOSE__THREAD__WORKER_CONSUMER_HPP
+#ifndef OPENPOSE_THREAD_WORKER_CONSUMER_HPP
+#define OPENPOSE_THREAD_WORKER_CONSUMER_HPP
 
 #include "worker.hpp"
 
@@ -13,7 +13,7 @@ namespace op
 
         inline void work(TDatums& tDatums)
         {
-        	workConsumer(tDatums);
+            workConsumer(tDatums);
         }
 
     protected:
@@ -26,7 +26,7 @@ namespace op
 
 
 // Implementation
-#include "../utilities/macros.hpp"
+#include <openpose/utilities/macros.hpp>
 namespace op
 {
     template<typename TDatums>
@@ -37,4 +37,4 @@ namespace op
     COMPILE_TEMPLATE_DATUM(WorkerConsumer);
 }
 
-#endif // OPENPOSE__THREAD__WORKER_CONSUMER_HPP
+#endif // OPENPOSE_THREAD_WORKER_CONSUMER_HPP
